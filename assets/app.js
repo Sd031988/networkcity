@@ -218,10 +218,6 @@
         }).join("") + "</div></section>";
     }
 
-    html += '<section class="grid info"><div class="card"><h2 class="section-title">' + icon("info") + "Über uns</h2><p>" + esc(b.about_text) + "</p>" +
-      '<p class="muted">' + icon("place") + " " + esc(b.street) + ", " + esc(b.zip_city) + "</p></div>" +
-      '<div class="card"><h2 class="section-title">' + icon("schedule") + "Öffnungszeiten</h2>" + hoursList() + "</div></section>";
-
     const featured = products.filter(function (p) { return p.featured && !NC.productIsHidden(p, settings.sold_remove_days); }).slice(0, 6);
     if (featured.length) {
       html += '<section><h2 class="section-title">' + icon("local_offer") + 'Aktuelle Angebote</h2><div class="grid c3">' + featured.map(productCard).join("") + "</div></section>";
@@ -232,6 +228,11 @@
       html += '<section><h2 class="section-title">' + icon("photo_library") + 'Ein Blick in unseren Laden</h2><div class="grid c3 gallery">' +
         gallery.map(function (f) { return '<img src="' + esc(imageUrl(f)) + '" alt="Foto aus dem Laden" loading="lazy">'; }).join("") + "</div></section>";
     }
+
+    // Über uns & Öffnungszeiten ganz unten
+    html += '<section class="grid info"><div class="card"><h2 class="section-title">' + icon("info") + "Über uns</h2><p>" + esc(b.about_text) + "</p>" +
+      '<p class="muted">' + icon("place") + " " + esc(b.street) + ", " + esc(b.zip_city) + "</p></div>" +
+      '<div class="card"><h2 class="section-title">' + icon("schedule") + "Öffnungszeiten</h2>" + hoursList() + "</div></section>";
 
     html += cta("<strong>Haben Sie Fragen?</strong> Rufen Sie uns an unter <strong>" + esc(b.phone) + "</strong> oder schreiben Sie uns per WhatsApp – wir beraten Sie gerne.");
     app.innerHTML = html;
