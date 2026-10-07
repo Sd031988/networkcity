@@ -1,0 +1,14 @@
+[theme]
+base = "light"
+primaryColor = "#F5740A"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#FFF7F0"
+textColor = "#1C1917"
+linkColor = "#F5740A"
+baseRadius = "medium"
+buttonRadius = "large"
+showWidgetBorder = true
+font = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+
+[browser]
+gatherUsageStats = false
