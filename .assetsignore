@@ -1,0 +1,15 @@
+.git
+.github
+node_modules
+functions
+server
+app_pages
+utils
+.streamlit
+*.py
+start.cmd
+requirements.txt
+wrangler.jsonc
+README.md
+.gitignore
+.nojekyll

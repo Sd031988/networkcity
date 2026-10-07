@@ -76,24 +76,27 @@ Wird die Seite über **Cloudflare Pages** ausgeliefert, meldet man sich in der
 Verwaltung mit **Benutzername und Passwort** an. Der GitHub-Token liegt dann
 geheim bei Cloudflare; die Verwaltung erkennt das automatisch.
 
-Dafür sorgen die Dateien in `functions/` (kleine Server-Funktionen) und
-`server/auth.js`. Sie enthalten keine Geheimnisse.
+Dafür sorgen `server/worker.js`, die Dateien in `functions/api/` (kleine
+Server-Funktionen) und `server/auth.js`. Sie enthalten keine Geheimnisse.
+`.assetsignore` legt fest, dass nur die Website-Dateien öffentlich ausgeliefert
+werden.
 
 **Einrichtung (einmalig, am besten am PC):**
 
-1. Cloudflare → **Workers & Pages → Erstellen → Pages → Mit Git verbinden** →
-   Repository `networkcity` wählen.
-2. Build-Einstellungen: Framework **Keins**, Build-Befehl **leer**,
-   Ausgabeverzeichnis **`/`**.
-3. Unter **Einstellungen → Variablen und Geheimnisse** (Production) als
+1. Cloudflare → **Workers & Pages → Anwendung erstellen → Continue with GitHub**
+   → Repository `networkcity` wählen.
+2. Build-Befehl **leer**, Bereitstellungsbefehl `npx wrangler deploy`
+   (Voreinstellung). Die Einstellungen stehen in `wrangler.jsonc`.
+3. Im Worker unter **Einstellungen → Variablen und Geheimnisse** als
    *Geheimnis* anlegen:
    - `ADMIN_USER` – Benutzername für die Verwaltung
    - `ADMIN_PASSWORD` – starkes Passwort (mind. 12 Zeichen)
    - `SESSION_SECRET` – zufällige Zeichenkette, mind. 32 Zeichen
    - `GITHUB_TOKEN` – Fine-grained Token, nur für dieses Repo,
      *Contents: Read and write*
-4. Neu bereitstellen (Deployments → „Retry deployment“).
-5. Unter **Benutzerdefinierte Domains** `networkcity-heidelberg.com` hinzufügen.
+4. Neu bereitstellen (Bereitstellungen → erneut ausführen).
+5. Unter **Einstellungen → Domains & Routen** die benutzerdefinierte Domain
+   `networkcity-heidelberg.com` hinzufügen.
 
 Die Verwaltung ist dann unter `https://networkcity-heidelberg.com/admin.html`
 erreichbar. Die Server-Funktion erlaubt nur das Lesen und Schreiben von
