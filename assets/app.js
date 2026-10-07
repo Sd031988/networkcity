@@ -333,6 +333,84 @@
     document.getElementById("shop-cta").innerHTML = cta("<strong>Sie interessieren sich für ein Produkt?</strong> Rufen Sie uns an oder schreiben Sie uns per WhatsApp – wir legen es gerne für Sie zur Seite.");
   }
 
+
+  /* ---------- Impressum & Datenschutz ---------- */
+
+  function legalData() {
+    const b = settings.business || {};
+    const l = settings.legal || {};
+    return {
+      owner: String(l.owner_name || "").trim(),
+      company: String(l.company_name || b.name || "").trim(),
+      form: String(l.legal_form || "").trim(),
+      vat: String(l.vat_id || "").trim(),
+      regCourt: String(l.register_court || "").trim(),
+      regNo: String(l.register_number || "").trim(),
+      contentResp: String(l.content_responsible || "").trim(),
+      b: b,
+    };
+  }
+
+  function addressBlock(d) {
+    const lines = [];
+    if (d.company) lines.push("<strong>" + esc(d.company) + "</strong>");
+    if (d.owner) lines.push("Inhaber: " + esc(d.owner));
+    if (d.form) lines.push(esc(d.form));
+    lines.push(esc(d.b.street), esc(d.b.zip_city));
+    return "<p>" + lines.join("<br>") + "</p>";
+  }
+
+  function pageImpressum() {
+    const d = legalData(), b = d.b;
+    let html = '<h1 class="section-title">' + icon("badge") + 'Impressum</h1><div class="card legal">' +
+      "<h2>Angaben gemäß § 5 DDG</h2>" + addressBlock(d) +
+      "<h2>Kontakt</h2><p>" +
+      (b.phone ? "Telefon: " + esc(b.phone) + "<br>" : "") +
+      (b.email ? 'E-Mail: <a href="mailto:' + esc(b.email) + '">' + esc(b.email) + "</a>" : "") + "</p>";
+    if (d.regCourt || d.regNo) html += "<h2>Registereintrag</h2><p>" + (d.regCourt ? "Registergericht: " + esc(d.regCourt) + "<br>" : "") + (d.regNo ? "Registernummer: " + esc(d.regNo) : "") + "</p>";
+    if (d.vat) html += "<h2>Umsatzsteuer-ID</h2><p>Umsatzsteuer-Identifikationsnummer gemäß § 27 a Umsatzsteuergesetz: " + esc(d.vat) + "</p>";
+    if (d.contentResp) html += "<h2>Verantwortlich für den Inhalt</h2><p>" + esc(d.contentResp) + "<br>" + esc(b.street) + ", " + esc(b.zip_city) + "</p>";
+    html += '<p class="muted small" style="margin:0"><a href="#datenschutz">Zur Datenschutzerklärung</a></p></div>';
+    app.innerHTML = html;
+  }
+
+  function pageDatenschutz() {
+    const d = legalData(), b = d.b;
+    const ext = function (href, text) { return '<a href="' + href + '" target="_blank" rel="noopener">' + text + "</a>"; };
+    app.innerHTML = '<h1 class="section-title">' + icon("security") + 'Datenschutzerklärung</h1><div class="card legal">' +
+      "<h2>1. Verantwortlicher</h2>" + addressBlock(d) + "<p>" +
+      (b.phone ? "Telefon: " + esc(b.phone) + "<br>" : "") +
+      (b.email ? 'E-Mail: <a href="mailto:' + esc(b.email) + '">' + esc(b.email) + "</a>" : "") + "</p>" +
+
+      "<h2>2. Grundsätzliches</h2><p>Auf dieser Website setzen wir <strong>keine Cookies</strong> und <strong>keine Analyse- oder Tracking-Werkzeuge</strong> ein. " +
+      "Es gibt keine Benutzerkonten für Besucher, kein Kontaktformular und keinen Newsletter. Schriftarten und Symbole werden von unserem eigenen Webspace geladen, nicht von Drittanbietern.</p>" +
+
+      "<h2>3. Hosting über GitHub Pages</h2><p>Diese Website wird über GitHub Pages bereitgestellt, einen Dienst der GitHub, Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, USA. " +
+      "Beim Aufruf der Website wird Ihre IP-Adresse von GitHub zu Sicherheitszwecken protokolliert und gespeichert, außerdem werden technisch notwendige Daten (z. B. aufgerufene Seite, Zeitpunkt, Browsertyp) verarbeitet. " +
+      "Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO; unser berechtigtes Interesse liegt in einer sicheren und zuverlässigen Bereitstellung der Website. " +
+      "Dabei können Daten in die USA übertragen werden. GitHub ist nach dem EU-US Data Privacy Framework zertifiziert (Art. 45 DSGVO). " +
+      "Weitere Informationen: " + ext("https://docs.github.com/de/site-policy/privacy-policies/github-general-privacy-statement", "Datenschutzerklärung von GitHub") + ".</p>" +
+
+      "<h2>4. Kontakt per Telefon, E-Mail oder WhatsApp</h2><p>Wenn Sie uns anrufen, eine E-Mail schreiben oder uns per WhatsApp kontaktieren, verarbeiten wir Ihre Angaben (z. B. Name, Telefonnummer, E-Mail-Adresse, Inhalt Ihrer Nachricht), um Ihre Anfrage zu bearbeiten. " +
+      "Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO, soweit es um einen Kauf, eine Reparatur oder eine andere Leistung geht, und im Übrigen Art. 6 Abs. 1 lit. f DSGVO (Beantwortung von Anfragen).</p>" +
+      "<p>Die Schaltflächen „WhatsApp“ und „Online kaufen / anfragen“ öffnen WhatsApp. Bei einer Kaufanfrage ist die Nachricht mit Produkt, Preis und gewählter Zahlungsart bereits vorausgefüllt; gesendet wird sie erst, wenn Sie selbst auf „Senden“ tippen. " +
+      "WhatsApp wird von der WhatsApp Ireland Limited, Merrion Road, Dublin 4, D04 X2K5, Irland, betrieben; dabei gelten deren " + ext("https://www.whatsapp.com/legal/privacy-policy-eea", "Datenschutzbestimmungen") +
+      ". Wenn Sie WhatsApp nicht nutzen möchten, erreichen Sie uns ebenso per Telefon, E-Mail oder persönlich im Laden.</p>" +
+
+      "<h2>5. Google Maps</h2><p>Auf der Kontaktseite können Sie eine Karte von Google Maps anzeigen lassen. Die Karte wird <strong>erst geladen, wenn Sie auf „Karte laden“ klicken</strong>. " +
+      "Erst dann werden Daten, insbesondere Ihre IP-Adresse, an Google übertragen. Anbieter ist die Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Irland; eine Übermittlung in die USA ist möglich (Google ist nach dem EU-US Data Privacy Framework zertifiziert). " +
+      "Rechtsgrundlage ist Ihre Einwilligung durch den Klick (Art. 6 Abs. 1 lit. a DSGVO, § 25 Abs. 1 TDDDG). Sie gilt nur für den jeweiligen Seitenaufruf. Weitere Informationen: " +
+      ext("https://policies.google.com/privacy?hl=de", "Datenschutzerklärung von Google") + ".</p>" +
+
+      "<h2>6. Speicherdauer</h2><p>Wir speichern personenbezogene Daten nur so lange, wie es für den jeweiligen Zweck erforderlich ist. Unterlagen zu Käufen und Reparaturen bewahren wir auf, solange gesetzliche Aufbewahrungsfristen (insbesondere nach Handels- und Steuerrecht) dies verlangen.</p>" +
+
+      "<h2>7. Ihre Rechte</h2><p>Sie haben das Recht auf Auskunft (Art. 15 DSGVO), Berichtigung (Art. 16), Löschung (Art. 17), Einschränkung der Verarbeitung (Art. 18), Datenübertragbarkeit (Art. 20) sowie auf Widerspruch gegen Verarbeitungen, die auf Art. 6 Abs. 1 lit. f DSGVO beruhen (Art. 21). " +
+      "Eine erteilte Einwilligung können Sie jederzeit mit Wirkung für die Zukunft widerrufen. Wenden Sie sich dazu einfach an die oben genannten Kontaktdaten.</p>" +
+      "<p>Außerdem können Sie sich bei einer Datenschutz-Aufsichtsbehörde beschweren, zum Beispiel bei der für uns zuständigen " +
+      ext("https://www.baden-wuerttemberg.datenschutz.de", "Landesbeauftragten für den Datenschutz und die Informationsfreiheit Baden-Württemberg") + ".</p>" +
+      '<p class="muted small" style="margin:0">Stand: Oktober 2026 · <a href="#impressum">Impressum</a></p></div>';
+  }
+
   /* ---------- Kaufanfrage ---------- */
 
   function openBuy(id) {
@@ -377,8 +455,8 @@
 
   /* ---------- Routing ---------- */
 
-  const PAGES = { start: pageStart, internetcafe: pageCafe, shop: pageShop, reparatur: pageRepair, kontakt: pageContact };
-  const TITLES = { start: "", internetcafe: "Internetcafé", shop: "Handy-Shop", reparatur: "Reparatur", kontakt: "Kontakt" };
+  const PAGES = { start: pageStart, internetcafe: pageCafe, shop: pageShop, reparatur: pageRepair, kontakt: pageContact, impressum: pageImpressum, datenschutz: pageDatenschutz };
+  const TITLES = { start: "", internetcafe: "Internetcafé", shop: "Handy-Shop", reparatur: "Reparatur", kontakt: "Kontakt", impressum: "Impressum", datenschutz: "Datenschutz" };
 
   function route() {
     if (!settings) return;
@@ -411,7 +489,8 @@
     brand.innerHTML = (b.logo ? '<img src="' + esc(imageUrl(b.logo)) + '" alt="">' : "") + "<span>" + esc(b.name) + "</span>";
     footer.innerHTML = "<div><strong>" + esc(b.name) + "</strong><br>" + esc(b.street) + ", " + esc(b.zip_city) + "</div>" +
       "<div>" + (telLink(b.phone) ? '<a href="' + esc(telLink(b.phone)) + '">' + icon("call") + " " + esc(b.phone) + "</a><br>" : "") +
-      (b.email ? '<a href="mailto:' + esc(b.email) + '">' + icon("mail") + " " + esc(b.email) + "</a>" : "") + "</div>";
+      (b.email ? '<a href="mailto:' + esc(b.email) + '">' + icon("mail") + " " + esc(b.email) + "</a>" : "") + "</div>" +
+      '<div class="footer-links"><a href="#impressum">Impressum</a><a href="#datenschutz">Datenschutz</a></div>';
   }
 
   Promise.all([loadJson("data/settings.json"), loadJson("data/products.json")])

@@ -590,6 +590,7 @@
 
   function tabBusiness(panel) {
     const b = settings.business || {};
+    const l = settings.legal || {};
     panel.innerHTML = '<div class="card form-stack"><h3>' + icon("store") + "Stammdaten</h3><div class=\"form-grid\">" +
       field("Ladenname", inp("b-name", b.name)) + field("Kurzbeschreibung (Slogan)", inp("b-tag", b.tagline)) +
       field("Straße & Hausnummer", inp("b-street", b.street)) + field("PLZ & Ort", inp("b-zip", b.zip_city)) +
@@ -598,6 +599,17 @@
       field("Verkaufte Produkte ausblenden nach (Tagen)", inp("b-sold", settings.sold_remove_days != null ? settings.sold_remove_days : 7, "number", ' min="0" max="365"'), "0 = sofort ausblenden") +
       "</div>" + field("Google-Maps-Embed-URL", inp("b-map", b.map_url, "url"), "Für die Karte auf der Kontaktseite (beginnt mit https://www.google.com/maps/embed?… oder https://maps.google.com/…)") +
       saveBtn("b-save", "Stammdaten speichern") + "</div>" +
+      '<div class="card form-stack"><h3>' + icon("badge") + "Impressum-Angaben</h3>" +
+      (String(l.owner_name || "").trim() ? "" : '<p class="err" style="margin:0">Bitte den vollständigen Namen des Inhabers eintragen – ohne ihn ist das Impressum unvollständig.</p>') +
+      '<p class="muted small" style="margin:0">Adresse, Telefon und E-Mail kommen automatisch aus den Stammdaten. Leere Felder werden im Impressum nicht angezeigt.</p><div class="form-grid">' +
+      field("Inhaber (Vor- und Nachname)", inp("l-owner", l.owner_name)) +
+      field("Firmenname", inp("l-company", l.company_name, "text", ' placeholder="' + esc(b.name || "") + '"'), "Leer = Ladenname") +
+      field("Rechtsform", inp("l-form", l.legal_form, "text", ' placeholder="z. B. Einzelunternehmen"')) +
+      field("Umsatzsteuer-ID", inp("l-vat", l.vat_id, "text", ' placeholder="DE…"'), "Nur falls vorhanden") +
+      field("Registergericht", inp("l-court", l.register_court), "Nur bei Handelsregistereintrag") +
+      field("Registernummer", inp("l-regno", l.register_number), "z. B. HRA 12345") +
+      field("Verantwortlich für den Inhalt", inp("l-resp", l.content_responsible), "Optional, Name") +
+      "</div>" + saveBtn("l-save", "Impressum-Angaben speichern") + "</div>" +
       '<div class="card form-stack"><h3>' + icon("schedule") + "Öffnungszeiten</h3><p class=\"muted small\" style=\"margin:0\">„Öffnet“ leer lassen = an diesem Tag geschlossen.</p><div id=\"hours\"></div>" + saveBtn("h-save", "Öffnungszeiten speichern") + "</div>" +
       '<div class="card form-stack"><h3>' + icon("event") + "Sonderöffnungszeiten</h3><p class=\"muted small\" style=\"margin:0\">Einmalige Änderungen mit Datum, z. B. Feiertage. Erscheinen automatisch auf Start- und Kontaktseite. „Öffnet“ leer = geschlossen.</p><div id=\"special\"></div>" + saveBtn("sp-save", "Sonderöffnungszeiten speichern") + "</div>";
 
@@ -619,6 +631,17 @@
         s.sold_remove_days = isNaN(days) ? 7 : Math.max(0, Math.min(365, days));
       }, "Stammdaten");
       toast(SAVED_MSG);
+    });
+    onClick("l-save", async function () {
+      await saveSettings(function (s) {
+        s.legal = {
+          owner_name: val("l-owner").trim(), company_name: val("l-company").trim(), legal_form: val("l-form").trim(),
+          vat_id: val("l-vat").trim(), register_court: val("l-court").trim(), register_number: val("l-regno").trim(),
+          content_responsible: val("l-resp").trim(),
+        };
+      }, "Impressum-Angaben");
+      toast(SAVED_MSG);
+      renderPanel();
     });
     onClick("h-save", async function () {
       const rows = hours.get().map(function (r) { return { day: r.day, open: r.open, close: r.open ? r.close : "" }; });

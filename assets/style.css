@@ -300,3 +300,8 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
 .map-consent p { color: var(--nc-muted); max-width: 520px; margin: 0 auto 16px; }
 [hidden] { display: none !important; }
 .ms { flex-shrink: 0; }
+.footer-links { display: flex; gap: 16px; align-items: flex-start; flex-basis: 100%; }
+.footer-links a { text-decoration: underline; color: var(--nc-muted); }
+.legal h2 { font-size: 1.1rem; margin: 1.4em 0 .4em; }
+.legal h2:first-child { margin-top: 0; }
+.legal p { overflow-wrap: anywhere; }
