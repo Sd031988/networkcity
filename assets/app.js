@@ -199,6 +199,17 @@
     html += promoHtml();
     html += specialHoursBox();
 
+    const featured = products.filter(function (p) { return p.featured && !NC.productIsHidden(p, settings.sold_remove_days); }).slice(0, 6);
+    if (featured.length) {
+      html += '<section><h2 class="section-title">' + icon("local_offer") + 'Aktuelle Angebote</h2><div class="grid c3">' + featured.map(productCard).join("") + "</div></section>";
+    }
+
+    const gallery = b.gallery || [];
+    if (gallery.length) {
+      html += '<section><h2 class="section-title">' + icon("photo_library") + 'Ein Blick in unseren Laden</h2><div class="grid c3 gallery">' +
+        gallery.map(function (f) { return '<img src="' + esc(imageUrl(f)) + '" alt="Foto aus dem Laden" loading="lazy">'; }).join("") + "</div></section>";
+    }
+
     const services = [
       ["computer", "Internetcafé", "PC-Arbeitsplätze, Drucken, Kopieren, Scannen und WLAN für alle.", "#internetcafe"],
       ["smartphone", "Handys neu & gebraucht", "Aktuelle Modelle und geprüfte Gebrauchtgeräte zum fairen Preis.", "#shop"],
@@ -216,17 +227,6 @@
         extra.map(function (s) {
           return '<div class="card service-card">' + icon(s.icon || "sell", "big") + "<h3>" + esc(s.name) + "</h3>" + (s.description ? "<p>" + esc(s.description) + "</p>" : "") + "</div>";
         }).join("") + "</div></section>";
-    }
-
-    const featured = products.filter(function (p) { return p.featured && !NC.productIsHidden(p, settings.sold_remove_days); }).slice(0, 6);
-    if (featured.length) {
-      html += '<section><h2 class="section-title">' + icon("local_offer") + 'Aktuelle Angebote</h2><div class="grid c3">' + featured.map(productCard).join("") + "</div></section>";
-    }
-
-    const gallery = b.gallery || [];
-    if (gallery.length) {
-      html += '<section><h2 class="section-title">' + icon("photo_library") + 'Ein Blick in unseren Laden</h2><div class="grid c3 gallery">' +
-        gallery.map(function (f) { return '<img src="' + esc(imageUrl(f)) + '" alt="Foto aus dem Laden" loading="lazy">'; }).join("") + "</div></section>";
     }
 
     // Über uns & Öffnungszeiten ganz unten
