@@ -15,21 +15,6 @@
     "sold_at": ""
   },
   {
-    "id": "a2",
-    "name": "iPhone 13, 128GB",
-    "category": "Smartphone",
-    "condition": "Gebraucht",
-    "price": 449,
-    "old_price": null,
-    "description": "Geprüftes Gebrauchtgerät in sehr gutem Zustand, Batteriezustand über 90 %. Mit 6 Monaten Gewährleistung.",
-    "image": "447d9cd21b194db0871d92e8a294815f.png",
-    "featured": true,
-    "available": true,
-    "online_sale": true,
-    "sold": false,
-    "sold_at": ""
-  },
-  {
     "id": "a3",
     "name": "Apple AirPods Pro (2. Generation)",
     "category": "Zubehör",
