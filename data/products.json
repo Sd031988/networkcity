@@ -1,20 +1,5 @@
 [
   {
-    "id": "a3",
-    "name": "Apple AirPods Pro (2. Generation)",
-    "category": "Zubehör",
-    "condition": "Neu",
-    "price": 219,
-    "old_price": 249,
-    "description": "Active Noise Cancelling, USB-C-Ladecase. Neu und original verpackt.",
-    "image": "",
-    "featured": true,
-    "available": true,
-    "online_sale": true,
-    "sold": false,
-    "sold_at": ""
-  },
-  {
     "id": "a4",
     "name": "Samsung Galaxy S22, 128GB",
     "category": "Smartphone",
