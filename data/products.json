@@ -1,1 +1,18 @@
-[]
+[
+  {
+    "id": "5f1dd3acb5d346bdb7948d7c006626fd",
+    "name": "Iphone 17 Pro",
+    "category": "Smartphone",
+    "condition": "Neu",
+    "price": 1170,
+    "old_price": 1250,
+    "description": "",
+    "image": "5844fb7a3f364113b0700b860d70eaa1.webp",
+    "featured": true,
+    "available": true,
+    "online_sale": false,
+    "sold": false,
+    "sold_at": "",
+    "payment_methods": []
+  }
+]
