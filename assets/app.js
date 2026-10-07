@@ -509,6 +509,24 @@
     NC.applyTheme(settings.theme);
     const brand = document.getElementById("brand");
     brand.innerHTML = (b.logo ? '<img src="' + esc(imageUrl(b.logo)) + '" alt="">' : "") + "<span>" + esc(b.name) + "</span>";
+
+    // Telefon direkt unter dem Namen (bleibt beim Scrollen sichtbar)
+    const bp = document.getElementById("brand-phone");
+    if (telLink(b.phone)) {
+      bp.href = telLink(b.phone);
+      bp.innerHTML = icon("call") + " " + esc(b.phone);
+      bp.setAttribute("aria-label", "Anrufen: " + b.phone);
+      bp.hidden = false;
+    }
+
+    // Kontaktleiste ganz oben
+    const tb = document.getElementById("topbar");
+    const items = [];
+    if (telLink(b.phone)) items.push('<a href="' + esc(telLink(b.phone)) + '">' + icon("call") + "<span>" + esc(b.phone) + "</span></a>");
+    if (waLink(b.whatsapp)) items.push('<a href="' + esc(waLink(b.whatsapp)) + '" target="_blank" rel="noopener">' + icon("chat") + "<span>WhatsApp</span></a>");
+    if (b.email) items.push('<a href="mailto:' + esc(b.email) + '" class="tb-mail">' + icon("mail") + "<span>" + esc(b.email) + "</span></a>");
+    if (b.street) items.push('<a href="#kontakt" class="tb-addr">' + icon("place") + "<span>" + esc(b.street) + ", " + esc(b.zip_city) + "</span></a>");
+    if (items.length) { tb.innerHTML = '<div class="wrap">' + items.join("") + "</div>"; tb.hidden = false; }
     footer.innerHTML = "<div><strong>" + esc(b.name) + "</strong><br>" + esc(b.street) + ", " + esc(b.zip_city) + "</div>" +
       "<div>" + (telLink(b.phone) ? '<a href="' + esc(telLink(b.phone)) + '">' + icon("call") + " " + esc(b.phone) + "</a><br>" : "") +
       (b.email ? '<a href="mailto:' + esc(b.email) + '">' + icon("mail") + " " + esc(b.email) + "</a>" : "") + "</div>" +

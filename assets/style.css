@@ -323,3 +323,19 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
 .shop-photo:hover img { transform: scale(1.03); }
 .shop-gallery.count-3 .shop-photo:first-child, .shop-gallery.count-4 .shop-photo:first-child { grid-column: 1 / -1; }
 .shop-gallery.count-3 .shop-photo:first-child img, .shop-gallery.count-4 .shop-photo:first-child img { aspect-ratio: 21/9; }
+/* Kontaktleiste oben + Telefon unter dem Namen */
+.topbar { background: #1C1917; color: #fff; font-size: .88rem; }
+[data-theme="dark"] .topbar { background: #000; }
+.topbar .wrap { display: flex; flex-wrap: wrap; gap: 6px 22px; align-items: center; min-height: 38px; padding-top: 4px; padding-bottom: 4px; }
+.topbar a { color: #fff; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.topbar a:hover { color: var(--nc-primary); }
+.topbar .ms { color: var(--nc-primary); }
+.topbar .tb-addr { margin-left: auto; }
+.brand-wrap { display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; min-width: 0; }
+.brand-phone { display: inline-flex; align-items: center; gap: 4px; font-size: .86rem; font-weight: 700; color: var(--nc-primary); text-decoration: none; padding-left: 2px; white-space: nowrap; }
+.brand-phone:hover { text-decoration: underline; }
+.site-header .wrap { padding-top: 6px; padding-bottom: 6px; }
+@media (max-width: 860px) {
+  .topbar .tb-addr, .topbar .tb-mail { display: none; }
+  .topbar .wrap { justify-content: center; }
+}
