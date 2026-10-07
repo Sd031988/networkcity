@@ -467,6 +467,7 @@
     panel.innerHTML = '<div class="card form-stack"><h3>' + icon("campaign") + "Werbung & Angebote</h3>" +
       '<p class="muted small" style="margin:0">Die große Bildergalerie oben auf der Startseite. Die Bilder wechseln automatisch und können ein Label, eine Überschrift und eine Beschreibung haben.</p>' +
       '<div class="form-grid">' + check("pr-on", "Werbung anzeigen", !!cfg.enabled) + check("pr-auto", "Automatisch wechseln", cfg.autoplay !== false) +
+      check("pr-feat", "Angebote (Produkte mit Häkchen „Angebot“) automatisch zeigen", cfg.include_featured !== false) +
       field("Wechsel alle (Sekunden)", inp("pr-int", cfg.interval || 5, "number", ' min="2" max="20"')) +
       field("Höhe (Pixel, Desktop)", inp("pr-h", cfg.height || 520, "number", ' min="240" max="760" step="20"')) + "</div>" +
       saveBtn("pr-save", "Einstellungen speichern") + "</div>" +
@@ -488,6 +489,7 @@
         s.promo = s.promo || {};
         s.promo.enabled = checked("pr-on");
         s.promo.autoplay = checked("pr-auto");
+        s.promo.include_featured = checked("pr-feat");
         s.promo.interval = Math.min(20, Math.max(2, parseInt(val("pr-int"), 10) || 5));
         s.promo.height = Math.min(760, Math.max(240, parseInt(val("pr-h"), 10) || 520));
       }, "Werbung: Einstellungen");

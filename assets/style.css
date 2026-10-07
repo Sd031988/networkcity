@@ -305,3 +305,12 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
 .legal h2 { font-size: 1.1rem; margin: 1.4em 0 .4em; }
 .legal h2:first-child { margin-top: 0; }
 .legal p { overflow-wrap: anywhere; }
+.promo-slide.is-product { background: radial-gradient(circle at 70% 40%, #2a2a2a 0%, #101214 70%); }
+.promo-slide.is-product img { padding: 16px 16px 120px; }
+@media (max-width: 640px) { .promo-slide.is-product img { padding: 8px 8px 90px; } }
+@media (max-width: 640px) { .promo-slide.is-product .promo-text { display: block; } }
+@media (max-width: 640px) {
+  .promo { height: 400px !important; }
+  .promo-slide.is-product img { padding: 12px 12px 130px; }
+  .promo-title { font-size: 1.2rem; }
+}

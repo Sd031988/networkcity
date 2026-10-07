@@ -111,17 +111,33 @@
     const cfg = settings.promo || {};
     if (!cfg.enabled) return "";
     const slides = (cfg.slides || []).filter(function (s) { return s.enabled !== false && s.image; });
+    // Produkte mit Häkchen „Angebot“ automatisch als Werbebild anhängen (abschaltbar in der Verwaltung)
+    if (cfg.include_featured !== false) {
+      products.filter(function (p) {
+        return p.featured && p.image && !p.sold && !NC.productIsHidden(p, settings.sold_remove_days);
+      }).forEach(function (p) {
+        const price = fmtPrice(p.price);
+        const old = fmtPrice(p.old_price);
+        const pct = Number(p.old_price) > Number(p.price) && Number(p.price) > 0
+          ? Math.round((1 - Number(p.price) / Number(p.old_price)) * 100) : 0;
+        let text = price ? (old && pct ? "Jetzt " + price + " statt " + old + " (−" + pct + " %)" : price) : "";
+        slides.push({ image: p.image, badge: "Angebot", title: p.name, text: text, link: "#shop", link_label: "Im Shop ansehen", product: true });
+      });
+    }
     if (!slides.length) return "";
     const h = Math.max(180, parseInt(cfg.height, 10) || 520);
     let html = '<div class="promo" id="promo" style="height:clamp(220px, 62vw, ' + h + 'px)" aria-roledescription="Karussell"><div class="promo-track" id="promo-track">';
     slides.forEach(function (s, i) {
-      html += '<div class="promo-slide" role="group" aria-label="Bild ' + (i + 1) + " von " + slides.length + '">' +
+      html += '<div class="promo-slide' + (s.product ? " is-product" : "") + '" role="group" aria-label="Bild ' + (i + 1) + " von " + slides.length + '">' +
         '<img src="' + esc(imageUrl(s.image)) + '" alt="' + esc(s.title || "Werbung") + '"' + (i ? ' loading="lazy"' : "") + ">";
       const parts = [];
       if (s.badge) parts.push('<span class="promo-badge">' + esc(s.badge) + "</span>");
       if (s.title) parts.push('<div class="promo-title">' + esc(s.title) + "</div>");
       if (s.text) parts.push('<p class="promo-text">' + esc(s.text) + "</p>");
-      if (s.link && s.link_label && /^(https?:|tel:|mailto:|#)/i.test(s.link)) parts.push('<a class="promo-link" href="' + esc(s.link) + '" target="_blank" rel="noopener">' + esc(s.link_label) + "</a>");
+      if (s.link && s.link_label && /^(https?:|tel:|mailto:|#)/i.test(s.link)) {
+        const ext = /^https?:/i.test(s.link);
+        parts.push('<a class="promo-link" href="' + esc(s.link) + '"' + (ext ? ' target="_blank" rel="noopener"' : "") + ">" + esc(s.link_label) + "</a>");
+      }
       if (parts.length) html += '<div class="promo-overlay">' + parts.join("") + "</div>";
       html += "</div>";
     });
