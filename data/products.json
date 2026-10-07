@@ -1,20 +1,5 @@
 [
   {
-    "id": "a4",
-    "name": "Samsung Galaxy S22, 128GB",
-    "category": "Smartphone",
-    "condition": "Gebraucht",
-    "price": 259,
-    "old_price": null,
-    "description": "Geprüftes Gebrauchtgerät, optisch sehr gut, Akkuzustand über 85 %. Mit 6 Monaten Gewährleistung.",
-    "image": "",
-    "featured": false,
-    "available": true,
-    "online_sale": false,
-    "sold": false,
-    "sold_at": ""
-  },
-  {
     "id": "a5",
     "name": "USB-C-Schnellladegerät 20 W",
     "category": "Zubehör",
