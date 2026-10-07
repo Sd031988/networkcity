@@ -176,12 +176,12 @@
       },
       {
         "name": "Drucken",
-        "price": "ab 0,10 € pro Seite",
+        "price": "ab 0,20 € pro Seite",
         "description": "Schwarzweiß und Farbe, auch direkt vom USB-Stick oder Smartphone."
       },
       {
         "name": "Kopieren",
-        "price": "ab 0,10 € pro Seite",
+        "price": "ab 0,20 € pro Seite",
         "description": "Kopien in allen gängigen Formaten."
       },
       {
@@ -191,7 +191,7 @@
       },
       {
         "name": "WLAN-Nutzung",
-        "price": "1,00 € pro Stunde",
+        "price": "2,00 € pro Stunde",
         "description": "Schnelles WLAN für Ihr Notebook oder Smartphone."
       }
     ]
