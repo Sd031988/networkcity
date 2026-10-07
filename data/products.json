@@ -73,20 +73,5 @@
     "online_sale": false,
     "sold": false,
     "sold_at": ""
-  },
-  {
-    "id": "fd4a32569a854cbd90d1292580e0057f",
-    "name": "Samsung",
-    "category": "Smartphone",
-    "condition": "Neu",
-    "price": 300,
-    "old_price": 500,
-    "description": "",
-    "image": "3b9b763f226f4a2581ece6f15c5134da.png",
-    "featured": true,
-    "available": true,
-    "online_sale": false,
-    "sold": false,
-    "sold_at": ""
   }
 ]
