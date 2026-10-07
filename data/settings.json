@@ -105,7 +105,7 @@
   "promo": {
     "enabled": true,
     "autoplay": true,
-    "interval": 3,
+    "interval": 2,
     "height": 520,
     "slides": [
       {
@@ -178,7 +178,8 @@
         "link_label": "",
         "enabled": true
       }
-    ]
+    ],
+    "include_featured": true
   },
   "extra_services": [
     {
