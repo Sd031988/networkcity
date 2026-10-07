@@ -1,20 +1,5 @@
 [
   {
-    "id": "a5",
-    "name": "USB-C-Schnellladegerät 20 W",
-    "category": "Zubehör",
-    "condition": "Neu",
-    "price": 9.99,
-    "old_price": null,
-    "description": "Kompaktes Netzteil mit USB-C, ideal für Smartphones und Tablets.",
-    "image": "",
-    "featured": false,
-    "available": true,
-    "online_sale": true,
-    "sold": false,
-    "sold_at": ""
-  },
-  {
     "id": "a6",
     "name": "Handyhülle kompatibel iPhone 12/13",
     "category": "Zubehör",
