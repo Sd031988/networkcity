@@ -93,9 +93,9 @@ Dafür sorgen die Dateien in `functions/` (kleine Server-Funktionen) und
    - `GITHUB_TOKEN` – Fine-grained Token, nur für dieses Repo,
      *Contents: Read and write*
 4. Neu bereitstellen (Deployments → „Retry deployment“).
-5. Unter **Benutzerdefinierte Domains** `networkcity-heidelberg.de` hinzufügen.
+5. Unter **Benutzerdefinierte Domains** `networkcity-heidelberg.com` hinzufügen.
 
-Die Verwaltung ist dann unter `https://networkcity-heidelberg.de/admin.html`
+Die Verwaltung ist dann unter `https://networkcity-heidelberg.com/admin.html`
 erreichbar. Die Server-Funktion erlaubt nur das Lesen und Schreiben von
 `data/settings.json`, `data/products.json` und Bildern in `data/images/` –
 keinen Zugriff auf Code oder andere Repositories.
