@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Networkcity Heidelberg – Internetcafé, Handys & Reparatur</title>
+  <meta name="description" content="Networkcity in Heidelberg: Internetcafé, neue und gebrauchte Handys, Zubehör und Handy-Reparatur.">
+  <link rel="icon" href="data/images/networkcity_logo.png">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="#start" id="brand"><span id="brand-name">Networkcity</span></a>
+      <button class="btn icon-only menu-btn" id="menu-btn" type="button" aria-label="Menü öffnen" aria-expanded="false" aria-controls="nav">
+        <span class="ms" aria-hidden="true">menu</span>
+      </button>
+      <nav class="nav" id="nav" aria-label="Hauptmenü">
+        <a href="#start" data-page="start"><span class="ms" aria-hidden="true">home</span>Start</a>
+        <a href="#internetcafe" data-page="internetcafe"><span class="ms" aria-hidden="true">computer</span>Internetcafé</a>
+        <a href="#shop" data-page="shop"><span class="ms" aria-hidden="true">smartphone</span>Handy-Shop</a>
+        <a href="#reparatur" data-page="reparatur"><span class="ms" aria-hidden="true">build</span>Reparatur</a>
+        <a href="#kontakt" data-page="kontakt"><span class="ms" aria-hidden="true">contact_phone</span>Kontakt</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap" id="app">
+      <div class="loading">Wird geladen …</div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap" id="footer"></div>
+  </footer>
+
+  <dialog id="buy-dialog" aria-labelledby="buy-title"></dialog>
+
+  <noscript><p style="text-align:center;padding:20px">Bitte JavaScript aktivieren, um diese Seite zu nutzen.</p></noscript>
+  <script src="assets/common.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>

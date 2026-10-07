@@ -1,124 +1,99 @@
 # Website Networkcity Heidelberg
 
-Eine einfache, eigene Webseite für das **Networkcity** in Heidelberg – 
-Internetcafé, Handy-Verkauf (neu & gebraucht), Reparatur und Zubehör.
+Eine eigene Webseite für das **Networkcity** in Heidelberg – Internetcafé,
+Handy-Verkauf (neu & gebraucht), Reparatur und Zubehör.
 
-Die Seite läuft mit **Streamlit** und kann komplett selbst über den
-eingebauten **Verwaltungsbereich** gepflegt werden (Produkte, Preise, Texte,
-Öffnungszeiten, Kontaktdaten, Logo). Es gibt keinen Onlineshop mit Zahlung:
-Interessenten rufen an oder schreiben per WhatsApp.
+Die Seite besteht nur aus HTML, CSS und JavaScript und läuft kostenlos über
+**GitHub Pages**. Inhalte (Produkte, Preise, Texte, Öffnungszeiten, Bilder)
+pflegt der Inhaber selbst über den eingebauten **Verwaltungsbereich**. Es gibt
+keinen Onlineshop mit Zahlung: Interessenten rufen an oder schreiben per
+WhatsApp.
 
-## Starten
+## Aufbau
 
-Auf dem Rechner einmalig:
+| Datei / Ordner | Inhalt |
+| --- | --- |
+| `index.html` | Die öffentliche Website (Start, Internetcafé, Handy-Shop, Reparatur, Kontakt) |
+| `admin.html` | Verwaltungsbereich (nicht im Menü verlinkt) |
+| `assets/` | Gestaltung (CSS), Programmcode (JS) und die lokal eingebundene Symbolschrift |
+| `data/settings.json` | Stammdaten, Texte, Öffnungszeiten, Preise, Werbung, Design |
+| `data/products.json` | Produkte |
+| `data/images/` | Alle Bilder |
 
-```powershell
-python -m venv .venv
-.venv\Scripts\pip install -r requirements.txt
+## Veröffentlichen mit GitHub Pages
+
+1. Im Repository auf **Settings → Pages** gehen.
+2. Unter „Build and deployment“: Source **Deploy from a branch**,
+   Branch **main**, Ordner **/ (root)** → **Save**.
+3. Nach 1–2 Minuten ist die Seite erreichbar unter
+   `https://<github-name>.github.io/networkcity/`.
+
+## Verwaltung
+
+Adresse: `https://<github-name>.github.io/networkcity/admin.html`
+
+Die Anmeldung erfolgt mit einem persönlichen **GitHub-Token**. Gespeichert wird
+direkt in diesem Repository; GitHub Pages veröffentlicht die Änderung danach
+automatisch (ca. 1–2 Minuten). Ohne gültigen Token kann niemand etwas ändern,
+auch wenn er die Adresse der Verwaltung kennt.
+
+**Token erstellen** (einmalig):
+
+1. Auf GitHub: Profilbild → **Settings → Developer settings → Personal access
+   tokens → Fine-grained tokens → Generate new token**.
+2. Repository access: **Only select repositories** → `networkcity`.
+3. Permissions → Repository permissions → **Contents: Read and write**.
+4. Token erzeugen, kopieren und in der Verwaltung einfügen.
+
+Den Token wie ein Passwort behandeln. Läuft er ab, einfach einen neuen erstellen.
+
+### Was kann der Betreiber selbst ändern?
+
+- **Werbung** – große Bildergalerie oben auf der Startseite: Bilder mit Label,
+  Überschrift, Beschreibung und optionalem Link; Reihenfolge, Wechselzeit und
+  Höhe einstellbar.
+- **Produkte** – anlegen, bearbeiten, löschen, mit Bild. Kategorie, Zustand
+  (Neu/Gebraucht), Preis, alter Preis (zeigt Streichpreis und Rabatt
+  automatisch), Beschreibung, „Angebot“ auf der Startseite, sichtbar ja/nein,
+  „online verkaufbar“ (Button „Online kaufen / anfragen“ per WhatsApp) und
+  erlaubte Zahlungsarten je Produkt. Verkaufte Produkte bleiben einige Tage mit
+  Hinweis „Verkauft“ sichtbar und verschwinden dann automatisch.
+- **Stammdaten** – Name, Adresse, Telefon, WhatsApp, E-Mail, Karten-URL,
+  Öffnungszeiten und Sonderöffnungszeiten (z. B. Feiertage).
+- **Texte** – Startseite, Internetcafé und Reparatur.
+- **Preise & Services** – Leistungen und Preise für Internetcafé und Reparatur,
+  weitere Partner-Services (z. B. Hermes, Western Union).
+- **Bezahlung** – Zahlungsarten für Kaufanfragen.
+- **Design** – Farbschema (Orange & Schwarz, Blau, Dunkel).
+- **Logo & Bilder** – Logo, Titelbild und Ladenfotos.
+
+Große Bilder werden beim Hochladen automatisch auf max. 1600 px Breite
+verkleinert.
+
+## Datenschutz
+
+- Schrift und Symbole sind lokal eingebunden – es werden keine Google Fonts
+  geladen.
+- Die Google-Maps-Karte auf der Kontaktseite wird erst geladen, wenn der
+  Besucher auf „Karte laden“ klickt.
+
+## Lokal ansehen
+
+Im Projektordner einen einfachen Webserver starten, z. B.:
+
+```
+python -m http.server 8000
 ```
 
-Danach startet die Seite mit:
+und `http://localhost:8000` im Browser öffnen.
 
-```powershell
-.venv\Scripts\streamlit run streamlit_app.py
-```
+## Alte Streamlit-Version
 
-Browser öffnen und auf `http://localhost:8501` gehen.
+Die frühere Python/Streamlit-Version (`streamlit_app.py`, `app_pages/`,
+`utils/`) liegt noch im Repository und nutzt dieselben Dateien in `data/`.
+Für GitHub Pages wird sie nicht gebraucht.
 
-## Zugangsdaten für die Verwaltung
+## Lizenzhinweis
 
-Der Verwaltungsbereich ist **für Besucher nicht sichtbar**. Der Inhaber erreicht
-ihn über einen geheimen Link (Untermenüpunkt **„Verwaltung"** erscheint dann im
-Menü):
-
-```
-http://localhost:8501/?admin=networkcity-2026
-```
-
-Vor der Freischaltung bitte unbedingt das Passwort ändern:
-
-1. Datei `.streamlit/secrets.toml` öffnen.
-2. Unter `[admin]` Benutzername und Passwort anpassen.
-3. Speichern – gilt sofort, Server muss nicht neu gestartet werden.
-
-Tipp: Den geheimen Link (mit `?admin=networkcity-2026`) als Lesezeichen speichern.
-Nur wer diesen Link kennt, bekommt den Verwaltungsbereich zu sehen; ohne den Link
-und das Passwort ist er nicht zugänglich.
-
-## Was kann der Betreiber selbst ändern (Verwaltung)?
-
-- **Produkte** – neue Produkte bequem über das **„Neues Produkt hinzufügen"**-
-  Formular anlegen (mit Bild). Vorhandene Produkte in der Tabelle bearbeiten:
-  Kategorie (Smartphone, Zubehör …), Zustand (Neu/Gebraucht), Preis, Beschreibung,
-  ob das Produkt als „Angebot" auf der Startseite erscheint und ob es verfügbar
-  ist. Für jedes Produkt kann ein Bild hochgeladen werden.
-  - **Alter Preis / Rabatt:** Sobald bei einem Produkt ein „Alter Preis" eingetragen
-    ist, zeigt die Website automatisch den durchgestrichenen alten Preis **und** den
-    Rabatt in Euro und Prozent an (z. B. ~~379,00 €~~ −50,00 € (−13 %)).
-  - **Online-Verkauf:** Mit dem Schalter „Direkt online verkaufbar" bzw. der
-    Spalte „Online" entscheidet man pro Produkt, ob Kunden einen Button
-    **„Online kaufen / anfragen"** (Anfrage per WhatsApp) sehen. Ohne Häkchen
-    erscheint „Nur im Laden erhältlich".
-- **Stammdaten** – Ladenname, Adresse, Telefon, WhatsApp, E-Mail, Karten-URL
-  und Öffnungszeiten.
-- **Sonderöffnungszeiten** – einmalige Änderungen mit Datum (z. B. Feiertage
-  oder verkürzte Zeiten). Einfach eine Zeile mit Datum, Zeiten und optionalem
-  Hinweis anlegen. Die Einträge erscheinen automatisch auf der Start- und
-  Kontaktseite (bis 35 Tage voraus). „Öffnet" leer lassen = an diesem Tag
-  geschlossen.
-- **Texte** – Startseite (Titel, Untertitel, Über-uns-Text), Texte und
-  Stichpunkte für Internetcafé und Reparatur.
-- **Preise & Services** – die Leistungstabelle für Internetcafé und Reparatur
-  (Leistung, Preis, Beschreibung).
-- **Weitere Services** – Partner-/Zusatzleistungen als Karten auf der
-  Startseite (z. B. Hermes Paketshop, Ria Money Transfer, Western Union,
-  Amazon Paketabgabe). Symbol, Name und Beschreibung sind pflegbar.
-- **Logo & Bilder** – Logo oben links hochladen, ein Titelbild für die
-  Startseite und beliebig viele Fotos vom Laden als Galerie auf der Startseite.
-- **Werbung & Angebote** – die große Bildergalerie oben auf der Startseite
-  (wie eine Werbetafel). Beliebig viele Bilder mit Überschrift, Label (z. B.
-  „Angebot") und Beschreibung anlegen; die Bilder wechseln automatisch. Die
-  Reihenfolge und die Anzeigedauer lassen sich einstellen.
-- **Bezahlung** – welche Zahlungsarten Kunden beim Online-Kauf wählen können
-  (z. B. PayPal, Karte, Überweisung, Bar). Bestellungen gehen per WhatsApp an
-  den Laden; ein echter Online-Bezahlvorgang ist nicht enthalten.
-- **Design** – Farbschema der Website umschalten (Modern Orange & Schwarz,
-  Modern & hell (Blau), Dunkel & edel).
-
-## Erste Schritte für den echten Betrieb
-
-1. **Kontaktdaten prüfen**: Adresse (`Plöck 12, 69117 Heidelberg-Altstadt`) und
-   Telefon (`0163 0300050`) sind bereits eingetragen; prüfen Sie in der
-   Verwaltung → Stammdaten, ob alles stimmt. Die WhatsApp-Nummer braucht den
-   Ländercode ohne führende Null, z. B. `491630300050` für `0163 0300050`.
-2. **Öffnungszeiten** anpassen (Mo–Sa 09:00–22:00, So 12:00–20:00 sind hinterlegt).
-3. **Beispielprodukte ersetzen bzw. anpassen** und echte Fotos hochladen.
-4. **Logo, Titelbild und Ladenfotos** unter Verwaltung → „Logo & Bilder" hochladen.
-5. **Sonderöffnungszeiten** (z. B. Feiertage) in Verwaltung → Stammdaten anlegen.
-6. **Google-Maps-Karte**: In den Stammdaten liegt eine Embed-URL vor. Wer eine
-   bessere Karte mit exakter Adresse möchte, sucht in Google Maps nach dem
-   Laden, klickt auf „Teilen" → „Karte einbetten" und kopiert die Embed-URL
-   (beginnt mit `https://www.google.com/maps/embed?...`) in das Feld.
-7. **Passwort ändern** (siehe oben).
-
-## Hinweise zur Technik
-
-- Alle Inhalte liegen in `data/settings.json` und `data/products.json`,
-  hochgeladene Bilder in `data/images/`. Diese Dateien sind das „Herz“ der
-  Seite – bitte regelmäßig sichern (kopieren reicht) und vor Neuinstallation
-  aufbewahren.
-- Der Verwaltungsbereich ist mit einem einfachen Passwort geschützt
-  (`.streamlit/secrets.toml`). Das reicht für einen kleinen Laden, ist aber
-  bewusst simpel gehalten – keine Zwei-Faktor-Absicherung, keine
-  Benutzerverwaltung.
-
-## Veröffentlichen (optional)
-
-- **Einfach lokal**: Die Seite kann dauerhaft auf einem Rechner im Laden laufen
-  (z. B. am Internetcafé-PC). Dazu den Befehl zum Starten in einen Autostart
-  eintragen. Besucher erreichen die Seite dann über `http://<rechner-ip>:8501`.
-- **Im Internet**: z. B. Streamlit Community Cloud (hostet die Seite kostenlos)
-  oder ein kleiner Server mit Docker. Dafür werden die Daten in ein Git-Repo
-  gelegt, `.streamlit/secrets.toml` mit dem echten Passwort wird nur auf dem
-  Server hinterlegt (nicht mit einchecken – die Datei steht bereits in
-  `.gitignore`).
+Die Symbole stammen aus „Material Symbols Rounded“ von Google
+(Apache License 2.0); im Projekt ist nur eine kleine Teilmenge enthalten.
