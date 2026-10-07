@@ -122,9 +122,9 @@ und `http://localhost:8000` im Browser öffnen.
 
 ## Alte Streamlit-Version
 
-Die frühere Python/Streamlit-Version (`streamlit_app.py`, `app_pages/`,
-`utils/`) liegt noch im Repository und nutzt dieselben Dateien in `data/`.
-Für GitHub Pages wird sie nicht gebraucht.
+Die frühere Python/Streamlit-Version liegt im Ordner `alt-streamlit/`. Sie wird
+für die Website nicht mehr gebraucht. (Zum Starten müsste sie wieder ins
+Hauptverzeichnis verschoben werden, weil sie die Dateien in `data/` nutzt.)
 
 ## Lizenzhinweis
 

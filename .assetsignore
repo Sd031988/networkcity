@@ -3,12 +3,7 @@
 node_modules
 functions
 server
-app_pages
-utils
-.streamlit
-*.py
-start.cmd
-requirements.txt
+alt-streamlit
 wrangler.jsonc
 README.md
 .gitignore
