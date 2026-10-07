@@ -14,5 +14,21 @@
     "sold": false,
     "sold_at": "",
     "payment_methods": []
+  },
+  {
+    "id": "81aaf36f038544a7ba360d43ce0711b6",
+    "name": "Iphone 17 Pro Max",
+    "category": "Smartphone",
+    "condition": "Neu",
+    "price": 1230,
+    "old_price": 1350,
+    "description": "",
+    "image": "ca8af683160249b6b8dbce8fa6c2248b.webp",
+    "featured": true,
+    "available": true,
+    "online_sale": false,
+    "sold": false,
+    "sold_at": "",
+    "payment_methods": []
   }
 ]
