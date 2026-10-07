@@ -314,3 +314,12 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
   .promo-slide.is-product img { padding: 12px 12px 130px; }
   .promo-title { font-size: 1.2rem; }
 }
+/* Ladenfotos */
+.shop-gallery { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); }
+.shop-gallery.count-1 { grid-template-columns: 1fr; }
+.shop-gallery.count-2 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); }
+.shop-photo { display: block; border-radius: var(--radius); overflow: hidden; box-shadow: var(--nc-shadow); border: 1px solid var(--nc-border); background: var(--nc-surface-2); }
+.shop-photo img { width: 100%; aspect-ratio: 16/10; object-fit: cover; transition: transform .3s ease; }
+.shop-photo:hover img { transform: scale(1.03); }
+.shop-gallery.count-3 .shop-photo:first-child, .shop-gallery.count-4 .shop-photo:first-child { grid-column: 1 / -1; }
+.shop-gallery.count-3 .shop-photo:first-child img, .shop-gallery.count-4 .shop-photo:first-child img { aspect-ratio: 21/9; }

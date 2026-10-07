@@ -204,10 +204,15 @@
       html += '<section><h2 class="section-title">' + icon("local_offer") + 'Aktuelle Angebote</h2><div class="grid c3">' + featured.map(productCard).join("") + "</div></section>";
     }
 
-    const gallery = b.gallery || [];
+    // Ladenfotos – fester Bereich auf der Startseite
+    const gallery = (b.gallery || []).filter(Boolean);
     if (gallery.length) {
-      html += '<section><h2 class="section-title">' + icon("photo_library") + 'Ein Blick in unseren Laden</h2><div class="grid c3 gallery">' +
-        gallery.map(function (f) { return '<img src="' + esc(imageUrl(f)) + '" alt="Foto aus dem Laden" loading="lazy">'; }).join("") + "</div></section>";
+      html += '<section><h2 class="section-title">' + icon("photo_library") + 'Ein Blick in unseren Laden</h2>' +
+        '<div class="shop-gallery count-' + Math.min(gallery.length, 4) + '">' +
+        gallery.map(function (f, i) {
+          return '<a class="shop-photo" href="' + esc(imageUrl(f)) + '" target="_blank" rel="noopener">' +
+            '<img src="' + esc(imageUrl(f)) + '" alt="Foto aus dem Laden ' + (i + 1) + '" loading="lazy"></a>';
+        }).join("") + "</div></section>";
     }
 
     const services = [
