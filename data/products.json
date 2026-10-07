@@ -1,20 +1,5 @@
 [
   {
-    "id": "a1",
-    "name": "Samsung Galaxy A55 5G, 128GB",
-    "category": "Smartphone",
-    "condition": "Neu",
-    "price": 329,
-    "old_price": 379,
-    "description": "6,6-Zoll-Display, 50-MP-Kamera, 5000-mAh-Akku. 2 Jahre Gewährleistung.",
-    "image": "90103fed544e44819316a8efcb9ef011.png",
-    "featured": true,
-    "available": true,
-    "online_sale": true,
-    "sold": false,
-    "sold_at": ""
-  },
-  {
     "id": "a3",
     "name": "Apple AirPods Pro (2. Generation)",
     "category": "Zubehör",
