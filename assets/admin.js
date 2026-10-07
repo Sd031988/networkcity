@@ -107,7 +107,7 @@
     throw err;
   }
   function explain(status, method, detail) {
-    if (serverMode && status === 500) return detail || "Serverfehler.";
+    if (serverMode && (status === 500 || status === 502)) return detail || "Serverfehler.";
     if (serverMode && status === 403 && /Herkunft|nicht erlaubt/.test(detail)) return detail;
     if (serverMode && (status === 401 || status === 403 || status === 404)) return "GitHub hat den Zugriff abgelehnt (" + status + "). Bitte den GitHub-Token in den Cloudflare-Einstellungen prüfen (Contents: Read and write für " + CFG.repo + ").";
     if (status === 401) return "Der Token ist ungültig oder abgelaufen. Bitte neu anmelden.";
@@ -256,7 +256,8 @@
         });
         const data = await res.json().catch(function () { return {}; });
         if (!res.ok) { renderServerLogin(data.error || "Anmeldung fehlgeschlagen."); return; }
-        await loadAll();
+        try { await loadAll(); } catch (loadErr) { renderServerLogin("Anmeldung erfolgreich, aber die Daten konnten nicht geladen werden: " + loadErr.message); }
+        return;
       } catch (err) {
         renderServerLogin(err.message || "Keine Verbindung.");
       }

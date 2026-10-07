@@ -40,6 +40,13 @@ export async function onRequest(context) {
     if (body.length > 15 * 1024 * 1024) return json(413, { message: "Datei zu groß." });
   }
   const res = await fetch(target, { method: method, headers: headers, body: body });
+  // Abgelehnter GitHub-Token ist KEIN Anmeldeproblem des Verwalters → eigener Status
+  if (res.status === 401) {
+    return json(502, { message: "Der GitHub-Token in Cloudflare (GITHUB_TOKEN) ist ungültig oder abgelaufen. Bitte einen neuen Token erstellen und in Cloudflare ersetzen." });
+  }
+  if (res.status === 403 && method !== "GET") {
+    return json(502, { message: "Der GitHub-Token in Cloudflare hat keine Schreibrechte. Er braucht „Contents: Read and write“ für dieses Repository." });
+  }
   return new Response(res.body, {
     status: res.status,
     headers: { "Content-Type": res.headers.get("Content-Type") || "application/json", "Cache-Control": "no-store" },
