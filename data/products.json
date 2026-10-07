@@ -11,8 +11,8 @@
     "featured": true,
     "available": true,
     "online_sale": false,
-    "sold": true,
-    "sold_at": "2026-10-07",
+    "sold": false,
+    "sold_at": "",
     "payment_methods": []
   }
 ]
