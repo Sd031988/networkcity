@@ -1,20 +1,5 @@
 [
   {
-    "id": "a6",
-    "name": "Handyhülle kompatibel iPhone 12/13",
-    "category": "Zubehör",
-    "condition": "Neu",
-    "price": 7.99,
-    "old_price": 9.99,
-    "description": "Transparente Silikonhülle mit stoßfestem Rahmen. In verschiedenen Farben erhältlich.",
-    "image": "",
-    "featured": false,
-    "available": true,
-    "online_sale": false,
-    "sold": false,
-    "sold_at": ""
-  },
-  {
     "id": "cd24396f55b94d0a80941d04e1356b9b",
     "name": "Samsung",
     "category": "Smartphone",
