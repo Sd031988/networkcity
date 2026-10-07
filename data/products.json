@@ -1,17 +1,1 @@
-[
-  {
-    "id": "cd24396f55b94d0a80941d04e1356b9b",
-    "name": "Samsung",
-    "category": "Smartphone",
-    "condition": "Neu",
-    "price": 150,
-    "old_price": 200,
-    "description": "",
-    "image": "",
-    "featured": false,
-    "available": true,
-    "online_sale": false,
-    "sold": false,
-    "sold_at": ""
-  }
-]
+[]
