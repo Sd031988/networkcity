@@ -6,6 +6,7 @@ import streamlit as st
 from utils import auth
 from utils.db import (
     delete_image,
+    github_persistence_enabled,
     image_path,
     iso_date,
     list_images,
@@ -68,6 +69,16 @@ with st.container(horizontal=True, horizontal_alignment="right"):
     if st.button("Abmelden", icon=":material/logout:"):
         auth.logout()
         st.rerun()
+
+if github_persistence_enabled():
+    st.caption(
+        ":material/cloud_done: Änderungen werden automatisch in GitHub gespeichert "
+        "und bleiben dauerhaft erhalten."
+    )
+else:
+    st.caption(
+        ":material/save: Änderungen werden lokal im Ordner «data» gespeichert."
+    )
 
 (
     tab_promo,

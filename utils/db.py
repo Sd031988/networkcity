@@ -1,7 +1,9 @@
 import base64
 import io
 import json
+import logging
 import mimetypes
+import os
 import uuid
 from datetime import date
 from io import BytesIO
@@ -11,13 +13,122 @@ from urllib.parse import quote
 import streamlit as st
 
 try:
+    import requests
+except ImportError:  # requests is a Streamlit dependency, but stay safe.
+    requests = None
+
+try:
     from PIL import Image
 except ImportError:  # Pillow is a Streamlit dependency, but stay safe.
     Image = None
 
+logger = logging.getLogger(__name__)
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
 IMAGES_DIR = DATA_DIR / "images"
+GITHUB_API_URL = "https://api.github.com"
+
+
+def _github_config():
+    """Return (token, repo, branch) when GitHub persistence is configured.
+
+    Reads the values from Streamlit secrets (``[github]``) or from the
+    environment. Returns ``None`` when persistence is disabled (e.g. local).
+    """
+    token = repo = None
+    branch = "main"
+    try:
+        gh = st.secrets.get("github")
+        if gh:
+            token = gh.get("token")
+            repo = gh.get("repo")
+            branch = gh.get("branch", "main")
+    except Exception:
+        pass
+    token = token or os.environ.get("GITHUB_TOKEN")
+    repo = repo or os.environ.get("GITHUB_REPO")
+    branch = branch or os.environ.get("GITHUB_BRANCH", "main")
+    if token and repo:
+        return token, repo, branch
+    return None
+
+
+def github_persistence_enabled():
+    """True when edits are written back to the GitHub repository."""
+    return _github_config() is not None
+
+
+def _github_headers(token):
+    return {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+
+
+def _repo_relative_path(local_path):
+    try:
+        return Path(local_path).resolve().relative_to(BASE_DIR).as_posix()
+    except ValueError:
+        return Path(local_path).name
+
+
+def _push_to_github(local_path, content_bytes, message):
+    """Create/update a file in the GitHub repo so changes survive restarts."""
+    config = _github_config()
+    if not config or requests is None:
+        return False
+    token, repo, branch = config
+    rel = _repo_relative_path(local_path)
+    url = f"{GITHUB_API_URL}/repos/{repo}/contents/{rel}"
+    headers = _github_headers(token)
+    try:
+        sha = None
+        resp = requests.get(url, headers=headers, params={"ref": branch}, timeout=30)
+        if resp.status_code == 200:
+            sha = resp.json().get("sha")
+        payload = {
+            "message": message,
+            "content": base64.b64encode(content_bytes).decode("ascii"),
+            "branch": branch,
+        }
+        if sha:
+            payload["sha"] = sha
+        resp = requests.put(url, headers=headers, json=payload, timeout=30)
+        if resp.status_code in (200, 201):
+            return True
+        logger.error(
+            "GitHub-Speichern fehlgeschlagen (%s): %s", resp.status_code, resp.text[:300]
+        )
+    except Exception as exc:  # network / auth errors
+        logger.error("GitHub-Speichern Fehler: %s", exc)
+    return False
+
+
+def _delete_from_github(local_path, message):
+    """Delete a file from the GitHub repo."""
+    config = _github_config()
+    if not config or requests is None:
+        return False
+    token, repo, branch = config
+    rel = _repo_relative_path(local_path)
+    url = f"{GITHUB_API_URL}/repos/{repo}/contents/{rel}"
+    headers = _github_headers(token)
+    try:
+        resp = requests.get(url, headers=headers, params={"ref": branch}, timeout=30)
+        if resp.status_code != 200:
+            return False
+        payload = {
+            "message": message,
+            "sha": resp.json().get("sha"),
+            "branch": branch,
+        }
+        resp = requests.delete(url, headers=headers, json=payload, timeout=30)
+        return resp.status_code == 200
+    except Exception as exc:
+        logger.error("GitHub-Loeschen Fehler: %s", exc)
+    return False
 
 
 def _read_json(path):
@@ -25,7 +136,9 @@ def _read_json(path):
 
 
 def _write_json(path, data):
-    path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    text = json.dumps(data, ensure_ascii=False, indent=2)
+    path.write_text(text, encoding="utf-8")
+    _push_to_github(path, text.encode("utf-8"), f"Aktualisiert: {path.name}")
 
 
 @st.cache_data(ttl=120, show_spinner=False)
@@ -59,7 +172,10 @@ def save_uploaded_image(uploaded_file):
     IMAGES_DIR.mkdir(parents=True, exist_ok=True)
     suffix = Path(uploaded_file.name).suffix.lower() or ".jpg"
     filename = uuid.uuid4().hex + suffix
-    (IMAGES_DIR / filename).write_bytes(uploaded_file.getvalue())
+    dest = IMAGES_DIR / filename
+    content = uploaded_file.getvalue()
+    dest.write_bytes(content)
+    _push_to_github(dest, content, f"Bild hinzugefügt: {filename}")
     return filename
 
 
@@ -69,6 +185,7 @@ def delete_image(filename):
     p = IMAGES_DIR / Path(filename).name
     if p.exists():
         p.unlink()
+    _delete_from_github(p, f"Bild gelöscht: {p.name}")
 
 
 def list_images():
