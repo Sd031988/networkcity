@@ -70,6 +70,36 @@ Den Token wie ein Passwort behandeln. Läuft er ab, einfach einen neuen erstelle
 Große Bilder werden beim Hochladen automatisch auf max. 1600 px Breite
 verkleinert.
 
+## Variante mit eigener Domain über Cloudflare (Anmeldung mit Benutzername + Passwort)
+
+Wird die Seite über **Cloudflare Pages** ausgeliefert, meldet man sich in der
+Verwaltung mit **Benutzername und Passwort** an. Der GitHub-Token liegt dann
+geheim bei Cloudflare; die Verwaltung erkennt das automatisch.
+
+Dafür sorgen die Dateien in `functions/` (kleine Server-Funktionen) und
+`server/auth.js`. Sie enthalten keine Geheimnisse.
+
+**Einrichtung (einmalig, am besten am PC):**
+
+1. Cloudflare → **Workers & Pages → Erstellen → Pages → Mit Git verbinden** →
+   Repository `networkcity` wählen.
+2. Build-Einstellungen: Framework **Keins**, Build-Befehl **leer**,
+   Ausgabeverzeichnis **`/`**.
+3. Unter **Einstellungen → Variablen und Geheimnisse** (Production) als
+   *Geheimnis* anlegen:
+   - `ADMIN_USER` – Benutzername für die Verwaltung
+   - `ADMIN_PASSWORD` – starkes Passwort (mind. 12 Zeichen)
+   - `SESSION_SECRET` – zufällige Zeichenkette, mind. 32 Zeichen
+   - `GITHUB_TOKEN` – Fine-grained Token, nur für dieses Repo,
+     *Contents: Read and write*
+4. Neu bereitstellen (Deployments → „Retry deployment“).
+5. Unter **Benutzerdefinierte Domains** `networkcity-heidelberg.de` hinzufügen.
+
+Die Verwaltung ist dann unter `https://networkcity-heidelberg.de/admin.html`
+erreichbar. Die Server-Funktion erlaubt nur das Lesen und Schreiben von
+`data/settings.json`, `data/products.json` und Bildern in `data/images/` –
+keinen Zugriff auf Code oder andere Repositories.
+
 ## Datenschutz
 
 - Schrift und Symbole sind lokal eingebunden – es werden keine Google Fonts

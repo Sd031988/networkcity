@@ -32,6 +32,8 @@
   const logoutBtn = document.getElementById("logout");
 
   let token = "";
+  let serverMode = false;   // true, wenn die Seite bei Cloudflare mit Server-Anmeldung läuft
+  let serverConfigError = "";
   let settings = null;
   let products = [];
   let images = [];
@@ -78,13 +80,24 @@
   /* ---------------- GitHub-API ---------------- */
 
   async function gh(method, path, body) {
-    const headers = { Accept: "application/vnd.github+json", Authorization: "Bearer " + token };
+    const headers = { Accept: "application/vnd.github+json" };
+    if (!serverMode) headers.Authorization = "Bearer " + token;
     if (body) headers["Content-Type"] = "application/json";
     let res;
     try {
-      res = await fetch(CFG.api + path, { method: method, headers: headers, body: body ? JSON.stringify(body) : undefined, cache: "no-store" });
+      res = await fetch((serverMode ? "api/gh" : CFG.api) + path, {
+        method: method, headers: headers, body: body ? JSON.stringify(body) : undefined,
+        cache: "no-store", credentials: serverMode ? "same-origin" : "omit",
+      });
     } catch (e) {
-      throw new Error("Keine Verbindung zu GitHub. Bitte Internetverbindung prüfen.");
+      throw new Error("Keine Verbindung. Bitte Internetverbindung prüfen.");
+    }
+    if (serverMode && res.status === 401) {
+      // Sitzung abgelaufen → zurück zur Anmeldung
+      const err = new Error("Ihre Anmeldung ist abgelaufen. Bitte neu anmelden.");
+      err.status = 401;
+      setTimeout(function () { renderLogin(err.message); }, 0);
+      throw err;
     }
     if (res.ok) return res.status === 204 ? null : res.json();
     let detail = "";
@@ -94,6 +107,9 @@
     throw err;
   }
   function explain(status, method, detail) {
+    if (serverMode && status === 500) return detail || "Serverfehler.";
+    if (serverMode && status === 403 && /Herkunft|nicht erlaubt/.test(detail)) return detail;
+    if (serverMode && (status === 401 || status === 403 || status === 404)) return "GitHub hat den Zugriff abgelehnt (" + status + "). Bitte den GitHub-Token in den Cloudflare-Einstellungen prüfen (Contents: Read and write für " + CFG.repo + ").";
     if (status === 401) return "Der Token ist ungültig oder abgelaufen. Bitte neu anmelden.";
     if (status === 403 && method !== "GET") return "Keine Schreibrechte. Der Token braucht „Contents: Read and write“ für dieses Repository.";
     if (status === 403) return "Zugriff verweigert (" + detail + ").";
@@ -194,6 +210,7 @@
 
   function renderLogin(errorMsg) {
     logoutBtn.hidden = true;
+    if (serverMode) return renderServerLogin(errorMsg);
     root.innerHTML = '<div class="card login form-stack">' +
       '<h1 class="section-title" style="margin:0">' + icon("admin_panel_settings") + "Verwaltung</h1>" +
       "<p style=\"margin:0\">Melden Sie sich mit Ihrem <strong>GitHub-Token</strong> an. Nur damit können Inhalte geändert werden.</p>" +
@@ -218,6 +235,42 @@
     });
   }
 
+  function renderServerLogin(errorMsg) {
+    root.innerHTML = '<div class="card login form-stack">' +
+      '<h1 class="section-title" style="margin:0">' + icon("admin_panel_settings") + "Verwaltung</h1>" +
+      (serverConfigError ? '<p class="err" style="margin:0">' + esc(serverConfigError) + "</p>" : "") +
+      '<form id="login-form" class="form-stack">' +
+      '<label class="field">Benutzername<input type="text" id="usr" autocomplete="username" autocapitalize="none" required></label>' +
+      '<label class="field">Passwort<input type="password" id="pwd" autocomplete="current-password" required></label>' +
+      '<label class="check"><input type="checkbox" id="remember"> Auf diesem Gerät 30 Tage angemeldet bleiben</label>' +
+      (errorMsg ? '<p class="err" style="margin:0">' + esc(errorMsg) + "</p>" : "") +
+      '<button class="btn primary" type="submit">' + icon("key") + "Anmelden</button></form></div>";
+    document.getElementById("login-form").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const form = e.target;
+      form.classList.add("busy");
+      try {
+        const res = await fetch("api/login", {
+          method: "POST", headers: { "Content-Type": "application/json" }, credentials: "same-origin",
+          body: JSON.stringify({ user: val("usr").trim(), password: val("pwd"), remember: checked("remember") }),
+        });
+        const data = await res.json().catch(function () { return {}; });
+        if (!res.ok) { renderServerLogin(data.error || "Anmeldung fehlgeschlagen."); return; }
+        await loadAll();
+      } catch (err) {
+        renderServerLogin(err.message || "Keine Verbindung.");
+      }
+    });
+  }
+
+  async function loadAll() {
+    const res = await Promise.all([readJson("data/settings.json"), readJson("data/products.json"), loadImages()]);
+    settings = res[0].data;
+    products = Array.isArray(res[1].data) ? res[1].data : [];
+    logoutBtn.hidden = false;
+    renderApp();
+  }
+
   async function login(t, remember, formEl) {
     token = t;
     if (formEl) formEl.classList.add("busy");
@@ -239,6 +292,7 @@
   logoutBtn.addEventListener("click", function () {
     token = ""; settings = null; products = [];
     storeToken("");
+    if (serverMode) fetch("api/logout", { method: "POST", credentials: "same-origin" }).catch(function () {});
     renderLogin();
   });
 
@@ -807,7 +861,21 @@
 
   /* ---------------- Start ---------------- */
 
-  const saved = storedToken();
-  if (saved) login(saved, !!(function () { try { return localStorage.getItem("nc_token"); } catch (e) { return null; } })());
-  else renderLogin();
+  (async function start() {
+    try {
+      const res = await fetch("api/me", { cache: "no-store", credentials: "same-origin" });
+      const info = res.ok && /json/.test(res.headers.get("Content-Type") || "") ? await res.json() : null;
+      if (info && info.mode === "server") {
+        serverMode = true;
+        serverConfigError = info.configError || "";
+        if (info.loggedIn) {
+          try { await loadAll(); return; } catch (e) { return renderLogin(e.message); }
+        }
+        return renderLogin();
+      }
+    } catch (e) { /* kein Server vorhanden (z. B. GitHub Pages) */ }
+    const saved = storedToken();
+    if (saved) login(saved, !!(function () { try { return localStorage.getItem("nc_token"); } catch (e) { return null; } })());
+    else renderLogin();
+  })();
 })();
