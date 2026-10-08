@@ -231,11 +231,6 @@
         "name": "Scannen",
         "price": "0,50 € pro Seite",
         "description": "Dokumente und Fotos digitalisieren und auf USB-Stick oder per E-Mail erhalten."
-      },
-      {
-        "name": "WLAN-Nutzung",
-        "price": "2,00 € pro Stunde",
-        "description": "Schnelles WLAN für Ihr Notebook oder Smartphone."
       }
     ]
   },
