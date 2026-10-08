@@ -134,6 +134,16 @@
         "link": "",
         "link_label": "",
         "enabled": true
+      },
+      {
+        "id": "6d414edcb72041339b0e7ab99c8251bf",
+        "image": "325b2dd1a84f4add9cb87c456ef95c38.jpg",
+        "badge": "",
+        "title": "",
+        "text": "",
+        "link": "",
+        "link_label": "",
+        "enabled": true
       }
     ],
     "include_featured": true
