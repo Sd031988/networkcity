@@ -810,7 +810,6 @@
 
   function tabImages(panel) {
     const b = settings.business || {};
-    const gallery = b.gallery || [];
     function single(key, title, hint, wide) {
       const cur = b[key];
       return '<div class="card form-stack"><h3>' + icon("image") + esc(title) + "</h3>" +
@@ -820,13 +819,7 @@
         (cur ? '<button class="btn danger" type="button" id="rm-' + key + '">' + icon("delete") + "Bild entfernen</button>" : "") + "</div></div>";
     }
     panel.innerHTML = single("logo", "Logo (oben links)", "Quadratisch oder breit, PNG empfohlen") +
-      single("hero_image", "Titelbild (groß oben auf der Startseite)", "Ein breites Bild, z. B. vom Laden", true) +
-      '<div class="card form-stack"><h3>' + icon("photo_library") + "Bilder vom Laden (Galerie)</h3>" +
-      (gallery.length ? '<div class="gallery-admin" id="gal">' + gallery.map(function (f, i) {
-        return '<figure><img src="' + esc(imgSrc(f)) + '" alt="Galeriebild ' + (i + 1) + '"><button class="btn small icon-only danger" type="button" data-gdel="' + i + '" aria-label="Entfernen">' + icon("delete") + "</button></figure>";
-      }).join("") + "</div>" : '<p class="muted" style="margin:0">Noch keine Ladenbilder.</p>') +
-      field("Ladenbilder hinzufügen", '<input type="file" id="up-gallery" accept="image/jpeg,image/png,image/webp" multiple>', "Mehrere Bilder auswählbar") +
-      '<div class="btn-row"><button class="btn primary" type="button" id="save-gallery">' + icon("add_photo_alternate") + "Zur Galerie hinzufügen</button></div></div>";
+      single("hero_image", "Titelbild (groß oben auf der Startseite)", "Ein breites Bild, z. B. vom Laden", true);
 
     ["logo", "hero_image"].forEach(function (key) {
       onClick("save-" + key, async function () {
@@ -839,24 +832,6 @@
       onClick("rm-" + key, async function () {
         if (!confirm("Bild wirklich entfernen?")) return;
         await saveSettings(function (s) { s.business[key] = ""; }, key === "logo" ? "Logo entfernt" : "Titelbild entfernt");
-        toast(SAVED_MSG); renderPanel();
-      });
-    });
-    onClick("save-gallery", async function () {
-      const files = Array.from(document.getElementById("up-gallery").files || []);
-      if (!files.length) { toast("Bitte zuerst Bilder auswählen.", true); return; }
-      const names = [];
-      for (const f of files) names.push(await uploadImage(f));
-      await saveSettings(function (s) { s.business = s.business || {}; s.business.gallery = (s.business.gallery || []).concat(names); }, "Galerie: Bilder hinzugefügt");
-      toast(SAVED_MSG); renderPanel();
-    });
-    const gal = document.getElementById("gal");
-    if (gal) gal.addEventListener("click", function (e) {
-      const btn = e.target.closest("[data-gdel]"); if (!btn) return;
-      const name = gallery[Number(btn.dataset.gdel)];
-      if (!confirm("Bild aus der Galerie entfernen?")) return;
-      withBusy(btn.closest(".card"), async function () {
-        await saveSettings(function (s) { s.business.gallery = (s.business.gallery || []).filter(function (x) { return x !== name; }); }, "Galerie: Bild entfernt");
         toast(SAVED_MSG); renderPanel();
       });
     });

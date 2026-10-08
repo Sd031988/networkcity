@@ -204,17 +204,6 @@
       html += '<section><h2 class="section-title">' + icon("local_offer") + 'Aktuelle Angebote</h2><div class="grid c3">' + featured.map(productCard).join("") + "</div></section>";
     }
 
-    // Ladenfotos – fester Bereich auf der Startseite
-    const gallery = (b.gallery || []).filter(Boolean);
-    if (gallery.length) {
-      html += '<section><h2 class="section-title">' + icon("photo_library") + 'Ein Blick in unseren Laden</h2>' +
-        '<div class="shop-gallery count-' + Math.min(gallery.length, 4) + '">' +
-        gallery.map(function (f, i) {
-          return '<a class="shop-photo" href="' + esc(imageUrl(f)) + '" target="_blank" rel="noopener">' +
-            '<img src="' + esc(imageUrl(f)) + '" alt="Foto aus dem Laden ' + (i + 1) + '" loading="lazy"></a>';
-        }).join("") + "</div></section>";
-    }
-
     const services = [
       ["computer", "Internetcafé", "PC-Arbeitsplätze, Drucken, Kopieren, Scannen und WLAN für alle.", "#internetcafe"],
       ["smartphone", "Handys neu & gebraucht", "Aktuelle Modelle und geprüfte Gebrauchtgeräte zum fairen Preis.", "#shop"],
