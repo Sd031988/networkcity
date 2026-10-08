@@ -124,6 +124,16 @@
         "link": "",
         "link_label": "",
         "enabled": true
+      },
+      {
+        "id": "c4c29e55233b46dbab32b4a2fe835971",
+        "image": "88bf83f94d954d0f92e6b3f42cc1a9cf.jpg",
+        "badge": "",
+        "title": "",
+        "text": "",
+        "link": "",
+        "link_label": "",
+        "enabled": true
       }
     ],
     "include_featured": true
