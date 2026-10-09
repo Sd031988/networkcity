@@ -964,23 +964,19 @@
         const datei = e.target.files[0];
         const karte = e.target.closest(".card");
         withBusy(karte, async function () {
-          let bilder;
-          if (datei.type === "application/pdf" || /\.pdf$/i.test(datei.name)) {
-            bilder = await pdfZuBildern(datei, 2);
-            if (!bilder.length) throw new Error("Das PDF konnte nicht gelesen werden.");
-          } else if (/^image\//.test(datei.type)) {
-            bilder = [URL.createObjectURL(datei)];
-          } else {
-            throw new Error("Bitte ein Foto (JPG/PNG) oder ein PDF wählen.");
-          }
+          // Dateiart am Inhalt erkennen (nicht nur an der Endung)
+          const kopf = new Uint8Array(await datei.slice(0, 5).arrayBuffer());
+          const istPdf = String.fromCharCode.apply(null, kopf) === "%PDF-";
+          const bilder = istPdf ? await pdfZuBildern(datei, 2) : [await bildZuJpeg(datei)];
+          if (!bilder.length) throw new Error("Das PDF konnte nicht gelesen werden.");
           setzeAusweis(seite, bilder[0]);
           // Zweite PDF-Seite automatisch als andere Seite, wenn diese noch leer ist
           const andere = seite === "vorne" ? "hinten" : "vorne";
           if (bilder[1]) {
-            if (!d["ausweis_" + andere]) setzeAusweis(andere, bilder[1]); else URL.revokeObjectURL(bilder[1]);
+            if (!d["ausweis_" + andere]) setzeAusweis(andere, bilder[1]);
           }
           renderPanel();
-          if (bilder.length > 1 && datei.type === "application/pdf") toast("PDF mit 2 Seiten: Seite 2 wurde als " + (andere === "hinten" ? "Rückseite" : "Vorderseite") + " übernommen.");
+          if (bilder.length > 1) toast("PDF mit 2 Seiten: Seite 2 wurde als " + (andere === "hinten" ? "Rückseite" : "Vorderseite") + " übernommen.");
         });
         return;
       }
@@ -990,9 +986,7 @@
       const btn = e.target.closest("[data-ausweis-weg]");
       if (!btn) return;
       lesen();
-      const k = "ausweis_" + btn.dataset.ausweisWeg;
-      if (d[k]) URL.revokeObjectURL(d[k]);
-      d[k] = "";
+      d["ausweis_" + btn.dataset.ausweisWeg] = "";
       renderPanel();
     });
     ["kv-print", "kv-print2"].forEach(function (id) {
@@ -1007,15 +1001,39 @@
     });
     document.getElementById("kv-reset").addEventListener("click", function () {
       if (!confirm("Alle Eingaben im Kaufvertrag löschen?")) return;
-      ["ausweis_vorne", "ausweis_hinten"].forEach(function (k) { if (d[k]) URL.revokeObjectURL(d[k]); });
       vertragDaten = vertragVorlage(); renderPanel();
     });
   }
 
   function setzeAusweis(seite, url) {
     const k = "ausweis_" + seite;
-    if (vertragDaten[k]) URL.revokeObjectURL(vertragDaten[k]);
     vertragDaten[k] = url;
+  }
+
+  // Foto öffnen, prüfen und als JPEG (data-URL) bereitstellen.
+  // Formate, die der Browser nicht anzeigen kann (z. B. HEIC vom iPhone), werden hier abgelehnt.
+  function bildZuJpeg(datei) {
+    return new Promise(function (ok, fehler) {
+      const url = URL.createObjectURL(datei);
+      const img = new Image();
+      img.onload = function () {
+        const max = 1600;
+        const f = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+        const c = document.createElement("canvas");
+        c.width = Math.max(1, Math.round(img.naturalWidth * f));
+        c.height = Math.max(1, Math.round(img.naturalHeight * f));
+        const ctx = c.getContext("2d");
+        ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
+        ctx.drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        ok(c.toDataURL("image/jpeg", 0.88));
+      };
+      img.onerror = function () {
+        URL.revokeObjectURL(url);
+        fehler(new Error("Diese Datei kann nicht als Bild geöffnet werden (z. B. HEIC vom iPhone). Bitte als JPG, PNG oder PDF wählen."));
+      };
+      img.src = url;
+    });
   }
 
   // pdf.js wird nur bei Bedarf geladen (liegt lokal in assets/vendor/pdfjs)
@@ -1059,8 +1077,7 @@
       const ctx = canvas.getContext("2d");
       ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, canvas.width, canvas.height);
       await seite.render({ canvasContext: ctx, viewport: viewport }).promise;
-      const blob = await new Promise(function (r) { canvas.toBlob(r, "image/jpeg", 0.9); });
-      urls.push(URL.createObjectURL(blob));
+      urls.push(canvas.toDataURL("image/jpeg", 0.88));
     }
     doc.destroy();
     return urls;
@@ -1109,7 +1126,13 @@
         '<div class="kv-unterschriften" style="grid-template-columns:1fr 1fr"><div><span class="kv-linie"></span>Unterschrift Ausweisinhaber/-in</div><div></div></div></div>' : "");
     const bilder = Array.prototype.slice.call(sheet.querySelectorAll("img"));
     Promise.all(bilder.map(function (img) { return img.decode ? img.decode().catch(function () {}) : null; }))
-      .then(function () { window.print(); });
+      .then(function () {
+        if (bilder.some(function (img) { return !img.naturalWidth; })) {
+          toast("Die Ausweiskopie konnte nicht geladen werden. Bitte das Bild/PDF noch einmal auswählen.", true);
+          return;
+        }
+        window.print();
+      });
   }
 
   /* ---------------- Start ---------------- */
