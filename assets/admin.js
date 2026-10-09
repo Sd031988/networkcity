@@ -895,7 +895,7 @@
         return '<label class="check"><input type="radio" name="kv-' + id + '" value="' + esc(o[0]) + '"' + (d[id] === o[0] ? " checked" : "") + "> " + esc(o[1]) + "</label>";
       }).join("") + "</fieldset>";
     }
-    panel.innerHTML = '<div class="card form-stack"><h3>' + icon("description") + "Kaufvertrag für ein Gebrauchtgerät (Ankauf)</h3>" +
+    panel.innerHTML = '<div class="card form-stack"><h3>' + icon("description") + "Kaufvertrag (Ankauf)</h3>" +
       '<p class="muted small" style="margin:0">Formular ausfüllen und drucken. <strong>Es wird nichts gespeichert</strong> – Namen und Ausweisdaten bleiben nur in diesem Fenster und sind nach dem Neuladen weg. Leere Felder bleiben auf dem Ausdruck zum Ausfüllen per Hand frei.</p>' +
       '<div class="btn-row"><button class="btn primary" type="button" id="kv-print">' + icon("print") + 'Drucken</button>' +
       '<button class="btn" type="button" id="kv-reset">' + icon("refresh") + "Formular leeren</button></div></div>" +
@@ -911,7 +911,7 @@
       t("g_hersteller", "Hersteller") + t("g_produkt", "Produkt / Modell") + t("g_serie", "Serien-Nr. / IMEI") + t("g_farbe", "Farbe") + t("g_alter", "Alter") + "</div>" +
       '<div class="kv-wahlen">' +
       wahl("ovp", "OVP", [["ja", "ja"], ["nein", "nein"]]) +
-      wahl("zustand", "Zustand", [["gebraucht", "gebraucht"], ["defekt", "defekt"]]) +
+      wahl("zustand", "Zustand", [["neu", "neu"], ["gebraucht", "gebraucht"], ["defekt", "defekt"]]) +
       wahl("funktion", "Funktion", [["ok", "uneingeschränkt"], ["siehe", "siehe Besonderheiten"]]) +
       wahl("optik", "Optik", [["ok", "neuwertig"], ["siehe", "siehe Besonderheiten"]]) +
       wahl("zubehoer", "Zubehör", [["ok", "original und komplett"], ["siehe", "siehe Besonderheiten"]]) + "</div>" +
@@ -964,7 +964,7 @@
     let sheet = document.getElementById("print-sheet");
     if (!sheet) { sheet = document.createElement("div"); sheet.id = "print-sheet"; document.body.appendChild(sheet); }
     sheet.innerHTML =
-      '<h1>Kaufvertrag für ein Gebrauchtgerät</h1>' +
+      "<h1>Kaufvertrag für ein " + (d.zustand === "neu" ? "Gerät" : "Gebrauchtgerät") + "</h1>" +
       '<div class="kv-grid2"><section><h2>Verkäufer/-in</h2>' +
       z("Name", d.v_name) + z("Straße", d.v_strasse) + z("PLZ Ort", d.v_ort) + z("Land", d.v_land) + z("Telefon", d.v_tel) + z("Ausweis-Nr.", d.v_ausweis) + z("Ausgestellt von", d.v_ausgestellt) +
       "</section><section><h2>Käufer/-in</h2>" +
@@ -972,12 +972,12 @@
       '<div class="kv-grid2 kv-geraet"><section><h2>Gerät</h2>' +
       z("Hersteller", d.g_hersteller) + z("Produkt", d.g_produkt) + z("Serien-Nr./IMEI", d.g_serie) + z("Farbe", d.g_farbe) + z("Alter", d.g_alter) +
       zeile2("OVP", "ovp", ["ja", "ja"], ["nein", "nein"]) +
-      zeile2("Zustand", "zustand", ["gebraucht", "gebraucht"], ["defekt", "defekt"]) +
+      '<div class="kv-check"><span class="kv-lab">Zustand:</span>' + box(d.zustand === "neu") + " neu &nbsp; " + box(d.zustand === "gebraucht") + " gebraucht &nbsp; " + box(d.zustand === "defekt") + " defekt</div>" +
       zeile2("Funktion", "funktion", ["ok", "uneingeschränkt"], ["siehe", "siehe Besonderheiten"]) +
       zeile2("Optik", "optik", ["ok", "neuwertig"], ["siehe", "siehe Besonderheiten"]) +
       zeile2("Zubehör", "zubehoer", ["ok", "original und komplett"], ["siehe", "siehe Besonderheiten"]) +
       '</section><section><h2>Besonderheiten</h2><div class="kv-frei">' + esc(d.besonderheiten || "").replace(/\n/g, "<br>") + "</div></section></div>" +
-      '<p class="kv-text">Das beschriebene Gerät wird in gebrauchtem Zustand und unter <strong>Ausschluss der Sachmängelhaftung</strong> verkauft. ' +
+      '<p class="kv-text">Das beschriebene Gerät wird ' + ({ neu: "in neuem Zustand", gebraucht: "in gebrauchtem Zustand", defekt: "in defektem Zustand" }[d.zustand] || "im beschriebenen Zustand") + ' und unter <strong>Ausschluss der Sachmängelhaftung</strong> verkauft. ' +
       "Die Haftung auf Schadensersatz wegen Verletzung von Leben, Körper oder Gesundheit sowie bei grober Fahrlässigkeit oder Vorsatz bleibt unberührt.</p>" +
       '<p class="kv-text">Der Verkäufer versichert, dass das Gerät einschließlich Zubehör sein frei verfügbares Eigentum ist und keine Rechte Dritter daran bestehen.</p>' +
       '<div class="kv-check" style="margin:2mm 0">' + box(d.begutachtet) + " Das Gerät wurde zuvor vom Käufer begutachtet.</div>" +
