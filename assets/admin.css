@@ -100,8 +100,8 @@
 .kv-ausweis-feld label.btn { cursor: pointer; }
 @media print {
   .kv-anlage { break-before: page; page-break-before: always; }
-  .kv-kopie { position: relative; border: 1px solid #000; margin: 0 0 5mm; text-align: center; }
-  .kv-kopie img { max-width: 100%; max-height: 92mm; object-fit: contain; display: inline-block; }
+  .kv-kopie { position: relative; border: 1px solid #000; margin: 0 0 3mm; text-align: center; }
+  .kv-kopie img { width: auto; max-width: 100%; height: 112mm; max-height: 112mm; object-fit: contain; display: block; margin: 0 auto; }
   .kv-stempel { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(-25deg); font: 700 40pt Arial, sans-serif; color: rgba(200, 0, 0, .45); border: 4px solid rgba(200, 0, 0, .45); padding: 1mm 6mm; letter-spacing: 4mm; pointer-events: none; }
 }
-@media print { .kv-anlage .kv-unterschriften { margin-top: 8mm; } .kv-kopie { break-inside: avoid; } }
+@media print { .kv-anlage .kv-unterschriften { margin-top: 6mm; } .kv-kopie { break-inside: avoid; } .kv-anlage h1 { margin-bottom: 2mm !important; } .kv-anlage > .kv-text { margin-bottom: 2mm; } }
