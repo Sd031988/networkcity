@@ -308,6 +308,7 @@
     ["payment", "payments", "Bezahlung"],
     ["design", "palette", "Design"],
     ["images", "image", "Logo & Bilder"],
+    ["contract", "description", "Kaufvertrag"],
   ];
 
   function renderApp() {
@@ -329,7 +330,7 @@
   function renderPanel() {
     const panel = document.getElementById("panel");
     ({ promo: tabPromo, products: tabProducts, business: tabBusiness, texts: tabTexts, services: tabServices,
-      payment: tabPayment, design: tabDesign, images: tabImages })[currentTab](panel);
+      payment: tabPayment, design: tabDesign, images: tabImages, contract: tabContract })[currentTab](panel);
   }
 
   /* ---------------- Bausteine für Formulare ---------------- */
@@ -835,6 +836,157 @@
         toast(SAVED_MSG); renderPanel();
       });
     });
+  }
+
+
+  /* ---------------- Tab: Kaufvertrag (Ankauf Gebrauchtgerät) ----------------
+   * Nur zum Ausfüllen und Drucken. Es wird NICHTS gespeichert – die Daten
+   * (Name, Ausweis-Nr. …) bleiben nur in diesem Browserfenster. */
+
+  const ZAHL_1 = ["null", "eins", "zwei", "drei", "vier", "fünf", "sechs", "sieben", "acht", "neun", "zehn", "elf", "zwölf",
+    "dreizehn", "vierzehn", "fünfzehn", "sechzehn", "siebzehn", "achtzehn", "neunzehn"];
+  const ZAHL_10 = ["", "", "zwanzig", "dreißig", "vierzig", "fünfzig", "sechzig", "siebzig", "achtzig", "neunzig"];
+  function zahlUnter100(n, ende) {
+    if (n < 20) return n === 1 ? (ende ? "eins" : "ein") : ZAHL_1[n];
+    const e = n % 10, z = Math.floor(n / 10);
+    return e ? (e === 1 ? "ein" : ZAHL_1[e]) + "und" + ZAHL_10[z] : ZAHL_10[z];
+  }
+  function zahlUnter1000(n, ende) {
+    const h = Math.floor(n / 100), r = n % 100;
+    return (h ? (h === 1 ? "ein" : ZAHL_1[h]) + "hundert" : "") + (r ? zahlUnter100(r, ende) : "");
+  }
+  function zahlInWorten(n) {
+    if (n === 0) return "null";
+    const t = Math.floor(n / 1000), r = n % 1000;
+    return (t ? (t === 1 ? "ein" : zahlUnter1000(t, false)) + "tausend" : "") + (r ? zahlUnter1000(r, true) : "");
+  }
+  function betragInWorten(wert) {
+    const v = Math.round(Number(wert) * 100);
+    if (!isFinite(v) || v <= 0 || v >= 100000000) return "";
+    const euro = Math.floor(v / 100), cent = v % 100;
+    let t = "";
+    if (euro) t = (euro === 1 ? "ein" : zahlInWorten(euro)) + " Euro";
+    if (cent) t += (t ? " und " : "") + zahlInWorten(cent) + " Cent";
+    return t.charAt(0).toUpperCase() + t.slice(1);
+  }
+
+  let vertragDaten = null; // nur im Arbeitsspeicher, wird nicht gespeichert
+
+  function vertragVorlage() {
+    const b = settings.business || {};
+    const l = settings.legal || {};
+    const ort = String(b.zip_city || "").replace(/^\d+\s*/, "").split("-")[0].trim() || "Heidelberg";
+    return {
+      v_name: "", v_strasse: "", v_ort: "", v_land: "DE", v_tel: "", v_ausweis: "", v_ausgestellt: "",
+      k_name: (l.company_name || b.name || "") + (l.owner_name ? ", Inh. " + l.owner_name : ""),
+      k_strasse: b.street || "", k_ort: b.zip_city || "", k_land: "DE", k_tel: b.phone || "",
+      g_hersteller: "", g_produkt: "", g_serie: "", g_farbe: "", g_alter: "",
+      ovp: "", zustand: "", funktion: "", optik: "", zubehoer: "", besonderheiten: "",
+      begutachtet: false, preis: "", worten: "", ort: ort, datum: NC.todayIso(),
+    };
+  }
+
+  function tabContract(panel) {
+    if (!vertragDaten) vertragDaten = vertragVorlage();
+    const d = vertragDaten;
+    function t(id, label, attrs) { return field(label, inp("kv-" + id, d[id], "text", attrs || "")); }
+    function wahl(id, label, opts) {
+      return '<fieldset class="kv-wahl"><legend>' + esc(label) + "</legend>" + opts.map(function (o) {
+        return '<label class="check"><input type="radio" name="kv-' + id + '" value="' + esc(o[0]) + '"' + (d[id] === o[0] ? " checked" : "") + "> " + esc(o[1]) + "</label>";
+      }).join("") + "</fieldset>";
+    }
+    panel.innerHTML = '<div class="card form-stack"><h3>' + icon("description") + "Kaufvertrag für ein Gebrauchtgerät (Ankauf)</h3>" +
+      '<p class="muted small" style="margin:0">Formular ausfüllen und drucken. <strong>Es wird nichts gespeichert</strong> – Namen und Ausweisdaten bleiben nur in diesem Fenster und sind nach dem Neuladen weg. Leere Felder bleiben auf dem Ausdruck zum Ausfüllen per Hand frei.</p>' +
+      '<div class="btn-row"><button class="btn primary" type="button" id="kv-print">' + icon("print") + 'Drucken</button>' +
+      '<button class="btn" type="button" id="kv-reset">' + icon("refresh") + "Formular leeren</button></div></div>" +
+
+      '<div class="card form-stack"><h3>' + icon("person") + 'Verkäufer/-in</h3><div class="form-grid">' +
+      t("v_name", "Name") + t("v_strasse", "Straße") + t("v_ort", "PLZ Ort") + t("v_land", "Land") +
+      t("v_tel", "Telefon", ' inputmode="tel"') + t("v_ausweis", "Ausweis-Nr.") + t("v_ausgestellt", "Ausgestellt von") + "</div></div>" +
+
+      '<div class="card form-stack"><h3>' + icon("store") + 'Käufer/-in</h3><p class="muted small" style="margin:0">Aus den Stammdaten vorausgefüllt.</p><div class="form-grid">' +
+      t("k_name", "Name") + t("k_strasse", "Straße") + t("k_ort", "PLZ Ort") + t("k_land", "Land") + t("k_tel", "Telefon") + "</div></div>" +
+
+      '<div class="card form-stack"><h3>' + icon("smartphone") + 'Gerät</h3><div class="form-grid">' +
+      t("g_hersteller", "Hersteller") + t("g_produkt", "Produkt / Modell") + t("g_serie", "Serien-Nr. / IMEI") + t("g_farbe", "Farbe") + t("g_alter", "Alter") + "</div>" +
+      '<div class="kv-wahlen">' +
+      wahl("ovp", "OVP", [["ja", "ja"], ["nein", "nein"]]) +
+      wahl("zustand", "Zustand", [["gebraucht", "gebraucht"], ["defekt", "defekt"]]) +
+      wahl("funktion", "Funktion", [["ok", "uneingeschränkt"], ["siehe", "siehe Besonderheiten"]]) +
+      wahl("optik", "Optik", [["ok", "neuwertig"], ["siehe", "siehe Besonderheiten"]]) +
+      wahl("zubehoer", "Zubehör", [["ok", "original und komplett"], ["siehe", "siehe Besonderheiten"]]) + "</div>" +
+      field("Besonderheiten", area("kv-besonderheiten", d.besonderheiten, 3)) +
+      check("kv-begutachtet", "Das Gerät wurde zuvor vom Käufer begutachtet", d.begutachtet) + "</div>" +
+
+      '<div class="card form-stack"><h3>' + icon("euro") + 'Kaufpreis</h3><div class="form-grid">' +
+      field("Kaufpreis (EUR)", inp("kv-preis", d.preis, "number", ' min="0" step="0.01" inputmode="decimal"')) +
+      field("in Worten", inp("kv-worten", d.worten), "Wird automatisch ausgefüllt, kann geändert werden") +
+      t("ort", "Ort") + field("Datum", inp("kv-datum", d.datum, "date")) + "</div>" +
+      '<div class="btn-row"><button class="btn primary" type="button" id="kv-print2">' + icon("print") + "Drucken</button></div></div>";
+
+    function lesen() {
+      panel.querySelectorAll("input[id^=kv-], textarea[id^=kv-]").forEach(function (el) {
+        const k = el.id.slice(3);
+        if (k in d) d[k] = el.type === "checkbox" ? el.checked : el.value;
+      });
+      ["ovp", "zustand", "funktion", "optik", "zubehoer"].forEach(function (k) {
+        const r = panel.querySelector('input[name="kv-' + k + '"]:checked');
+        d[k] = r ? r.value : "";
+      });
+    }
+    panel.addEventListener("input", function (e) {
+      if (e.target.id === "kv-preis") {
+        const w = document.getElementById("kv-worten");
+        if (!w.dataset.manuell) w.value = betragInWorten(String(e.target.value).replace(",", "."));
+      }
+      if (e.target.id === "kv-worten") e.target.dataset.manuell = e.target.value ? "1" : "";
+      lesen();
+    });
+    panel.addEventListener("change", lesen);
+    ["kv-print", "kv-print2"].forEach(function (id) {
+      document.getElementById(id).addEventListener("click", function () { lesen(); vertragDrucken(d); });
+    });
+    document.getElementById("kv-reset").addEventListener("click", function () {
+      if (!confirm("Alle Eingaben im Kaufvertrag löschen?")) return;
+      vertragDaten = vertragVorlage(); renderPanel();
+    });
+  }
+
+  function vertragDrucken(d) {
+    const box = function (on) { return '<span class="kv-box">' + (on ? "✕" : "") + "</span>"; };
+    const z = function (label, wert) { return '<div class="kv-zeile"><span class="kv-lab">' + esc(label) + ':</span><span class="kv-val">' + esc(wert || "") + "</span></div>"; };
+    const datum = d.datum ? d.datum.split("-").reverse().join(".") : "";
+    const preis = Number(String(d.preis).replace(",", "."));
+    const preisText = isFinite(preis) && preis > 0 ? preis.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "";
+    const zeile2 = function (label, key, a, b) {
+      return '<div class="kv-check"><span class="kv-lab">' + label + ":</span>" + box(d[key] === a[0]) + " " + a[1] + " &nbsp; " + box(d[key] === b[0]) + " " + b[1] + "</div>";
+    };
+    let sheet = document.getElementById("print-sheet");
+    if (!sheet) { sheet = document.createElement("div"); sheet.id = "print-sheet"; document.body.appendChild(sheet); }
+    sheet.innerHTML =
+      '<h1>Kaufvertrag für ein Gebrauchtgerät</h1>' +
+      '<div class="kv-grid2"><section><h2>Verkäufer/-in</h2>' +
+      z("Name", d.v_name) + z("Straße", d.v_strasse) + z("PLZ Ort", d.v_ort) + z("Land", d.v_land) + z("Telefon", d.v_tel) + z("Ausweis-Nr.", d.v_ausweis) + z("Ausgestellt von", d.v_ausgestellt) +
+      "</section><section><h2>Käufer/-in</h2>" +
+      z("Name", d.k_name) + z("Straße", d.k_strasse) + z("PLZ Ort", d.k_ort) + z("Land", d.k_land) + z("Telefon", d.k_tel) + "</section></div>" +
+      '<div class="kv-grid2 kv-geraet"><section><h2>Gerät</h2>' +
+      z("Hersteller", d.g_hersteller) + z("Produkt", d.g_produkt) + z("Serien-Nr./IMEI", d.g_serie) + z("Farbe", d.g_farbe) + z("Alter", d.g_alter) +
+      zeile2("OVP", "ovp", ["ja", "ja"], ["nein", "nein"]) +
+      zeile2("Zustand", "zustand", ["gebraucht", "gebraucht"], ["defekt", "defekt"]) +
+      zeile2("Funktion", "funktion", ["ok", "uneingeschränkt"], ["siehe", "siehe Besonderheiten"]) +
+      zeile2("Optik", "optik", ["ok", "neuwertig"], ["siehe", "siehe Besonderheiten"]) +
+      zeile2("Zubehör", "zubehoer", ["ok", "original und komplett"], ["siehe", "siehe Besonderheiten"]) +
+      '</section><section><h2>Besonderheiten</h2><div class="kv-frei">' + esc(d.besonderheiten || "").replace(/\n/g, "<br>") + "</div></section></div>" +
+      '<p class="kv-text">Das beschriebene Gerät wird in gebrauchtem Zustand und unter <strong>Ausschluss der Sachmängelhaftung</strong> verkauft. ' +
+      "Die Haftung auf Schadensersatz wegen Verletzung von Leben, Körper oder Gesundheit sowie bei grober Fahrlässigkeit oder Vorsatz bleibt unberührt.</p>" +
+      '<p class="kv-text">Der Verkäufer versichert, dass das Gerät einschließlich Zubehör sein frei verfügbares Eigentum ist und keine Rechte Dritter daran bestehen.</p>' +
+      '<div class="kv-check" style="margin:2mm 0">' + box(d.begutachtet) + " Das Gerät wurde zuvor vom Käufer begutachtet.</div>" +
+      '<div class="kv-preis"><div class="kv-zeile"><span class="kv-lab">Kaufpreis:</span><span class="kv-val">' + esc(preisText) + " EUR</span></div>" +
+      '<div class="kv-zeile"><span class="kv-lab">in Worten:</span><span class="kv-val">' + esc(d.worten || "") + "</span></div>" +
+      '<p class="kv-text" style="margin:2mm 0 0">Der Betrag ist spätestens bei Übergabe des Gerätes fällig.</p></div>' +
+      '<div class="kv-unterschriften"><div><span class="kv-linie">' + esc([d.ort, datum].filter(Boolean).join(", ")) + "</span>Ort, Datum</div>" +
+      '<div><span class="kv-linie"></span>Unterschrift Verkäufer/-in</div><div><span class="kv-linie"></span>Unterschrift Käufer/-in</div></div>';
+    window.print();
   }
 
   /* ---------------- Start ---------------- */
