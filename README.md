@@ -130,3 +130,7 @@ Hauptverzeichnis verschoben werden, weil sie die Dateien in `data/` nutzt.)
 
 Die Symbole stammen aus „Material Symbols Rounded“ von Google
 (Apache License 2.0); im Projekt ist nur eine kleine Teilmenge enthalten.
+
+Für das Einlesen von PDF-Ausweiskopien im Kaufvertrag wird pdf.js 3.2.146
+von Mozilla (Apache License 2.0, `assets/vendor/pdfjs/`) lokal eingebunden.
+Die PDF wird nur im Browser verarbeitet und nicht hochgeladen.

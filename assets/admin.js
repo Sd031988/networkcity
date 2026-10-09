@@ -900,7 +900,9 @@
       const url = d["ausweis_" + seite];
       return '<div class="kv-ausweis-feld"><strong>' + label + "</strong>" +
         (url ? '<img src="' + url + '" alt="Ausweis ' + label + '">' : '<div class="kv-ausweis-leer">' + icon("photo_camera") + "<span>Noch kein Bild</span></div>") +
-        '<label class="btn small"><input type="file" accept="image/*" capture="environment" data-ausweis="' + seite + '" hidden>' + icon("photo_camera") + (url ? "Ersetzen" : "Foto / Datei wählen") + "</label>" +
+        '<div class="btn-row">' +
+        '<label class="btn small"><input type="file" accept="image/*" capture="environment" data-ausweis="' + seite + '" hidden>' + icon("photo_camera") + "Foto aufnehmen</label>" +
+        '<label class="btn small"><input type="file" accept="image/*,application/pdf,.pdf" data-ausweis="' + seite + '" hidden>' + icon("upload") + "Datei / PDF wählen</label></div>" +
         (url ? '<button class="btn small danger" type="button" data-ausweis-weg="' + seite + '">' + icon("delete") + "Entfernen</button>" : "") + "</div>";
     }
     panel.innerHTML = '<div class="card form-stack"><h3>' + icon("description") + "Kaufvertrag (Ankauf)</h3>" +
@@ -927,7 +929,7 @@
       check("kv-begutachtet", "Das Gerät wurde zuvor vom Käufer begutachtet", d.begutachtet) + "</div>" +
 
       '<div class="card form-stack"><h3>' + icon("badge") + "Ausweiskopie (Anlage)</h3>" +
-      '<p class="muted small" style="margin:0">Foto oder Scan vom Ausweis des Verkäufers. Wird <strong>nicht gespeichert</strong> und nur als 2. Seite mit dem Vertrag gedruckt – deutlich als „KOPIE“ gekennzeichnet. Nur mit Zustimmung des Ausweisinhabers (§ 20 PAuswG).</p>' +
+      '<p class="muted small" style="margin:0">Foto oder Scan (auch als PDF) vom Ausweis des Verkäufers. Ein PDF mit 2 Seiten wird automatisch als Vorder- und Rückseite übernommen. Wird <strong>nicht gespeichert</strong> und nur als 2. Seite mit dem Vertrag gedruckt – deutlich als „KOPIE“ gekennzeichnet. Nur mit Zustimmung des Ausweisinhabers (§ 20 PAuswG).</p>' +
       '<div class="kv-ausweis">' + ausweisFeld("vorne", "Vorderseite") + ausweisFeld("hinten", "Rückseite") + "</div>" +
       check("kv-ausweis_ok", "Der Verkäufer ist mit der Kopie seines Ausweises einverstanden", d.ausweis_ok) + "</div>" +
 
@@ -959,9 +961,27 @@
       const seite = e.target.dataset && e.target.dataset.ausweis;
       if (seite && e.target.files && e.target.files[0]) {
         lesen();
-        if (d["ausweis_" + seite]) URL.revokeObjectURL(d["ausweis_" + seite]);
-        d["ausweis_" + seite] = URL.createObjectURL(e.target.files[0]);
-        renderPanel();
+        const datei = e.target.files[0];
+        const karte = e.target.closest(".card");
+        withBusy(karte, async function () {
+          let bilder;
+          if (datei.type === "application/pdf" || /\.pdf$/i.test(datei.name)) {
+            bilder = await pdfZuBildern(datei, 2);
+            if (!bilder.length) throw new Error("Das PDF konnte nicht gelesen werden.");
+          } else if (/^image\//.test(datei.type)) {
+            bilder = [URL.createObjectURL(datei)];
+          } else {
+            throw new Error("Bitte ein Foto (JPG/PNG) oder ein PDF wählen.");
+          }
+          setzeAusweis(seite, bilder[0]);
+          // Zweite PDF-Seite automatisch als andere Seite, wenn diese noch leer ist
+          const andere = seite === "vorne" ? "hinten" : "vorne";
+          if (bilder[1]) {
+            if (!d["ausweis_" + andere]) setzeAusweis(andere, bilder[1]); else URL.revokeObjectURL(bilder[1]);
+          }
+          renderPanel();
+          if (bilder.length > 1 && datei.type === "application/pdf") toast("PDF mit 2 Seiten: Seite 2 wurde als " + (andere === "hinten" ? "Rückseite" : "Vorderseite") + " übernommen.");
+        });
         return;
       }
       lesen();
@@ -990,6 +1010,60 @@
       ["ausweis_vorne", "ausweis_hinten"].forEach(function (k) { if (d[k]) URL.revokeObjectURL(d[k]); });
       vertragDaten = vertragVorlage(); renderPanel();
     });
+  }
+
+  function setzeAusweis(seite, url) {
+    const k = "ausweis_" + seite;
+    if (vertragDaten[k]) URL.revokeObjectURL(vertragDaten[k]);
+    vertragDaten[k] = url;
+  }
+
+  // pdf.js wird nur bei Bedarf geladen (liegt lokal in assets/vendor/pdfjs)
+  let pdfjsLaden = null;
+  function ladePdfjs() {
+    if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+    if (!pdfjsLaden) {
+      pdfjsLaden = new Promise(function (ok, fehler) {
+        const sc = document.createElement("script");
+        sc.src = "assets/vendor/pdfjs/pdf.min.js";
+        sc.onload = function () {
+          if (!window.pdfjsLib) return fehler(new Error("PDF-Leser nicht verfügbar."));
+          window.pdfjsLib.GlobalWorkerOptions.workerSrc = "assets/vendor/pdfjs/pdf.worker.min.js";
+          ok(window.pdfjsLib);
+        };
+        sc.onerror = function () { pdfjsLaden = null; fehler(new Error("PDF-Leser konnte nicht geladen werden.")); };
+        document.head.appendChild(sc);
+      });
+    }
+    return pdfjsLaden;
+  }
+
+  async function pdfZuBildern(datei, maxSeiten) {
+    const lib = await ladePdfjs();
+    const daten = new Uint8Array(await datei.arrayBuffer());
+    let doc;
+    try {
+      doc = await lib.getDocument({ data: daten, isEvalSupported: false, disableAutoFetch: true }).promise;
+    } catch (e) {
+      throw new Error(/password/i.test(String(e && e.name)) ? "Das PDF ist passwortgeschützt." : "Das PDF konnte nicht gelesen werden.");
+    }
+    const urls = [];
+    const n = Math.min(doc.numPages, maxSeiten);
+    for (let i = 1; i <= n; i++) {
+      const seite = await doc.getPage(i);
+      const basis = seite.getViewport({ scale: 1 });
+      const viewport = seite.getViewport({ scale: Math.min(3, 1600 / basis.width) });
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(viewport.width);
+      canvas.height = Math.round(viewport.height);
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      await seite.render({ canvasContext: ctx, viewport: viewport }).promise;
+      const blob = await new Promise(function (r) { canvas.toBlob(r, "image/jpeg", 0.9); });
+      urls.push(URL.createObjectURL(blob));
+    }
+    doc.destroy();
+    return urls;
   }
 
   function vertragDrucken(d) {
