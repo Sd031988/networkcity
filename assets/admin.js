@@ -1094,7 +1094,7 @@
     };
     let sheet = document.getElementById("print-sheet");
     if (!sheet) { sheet = document.createElement("div"); sheet.id = "print-sheet"; document.body.appendChild(sheet); }
-    sheet.innerHTML =
+    sheet.innerHTML = '<div class="kv-seite">' +
       "<h1>Kaufvertrag für ein " + (d.zustand === "neu" ? "Gerät" : "Gebrauchtgerät") + "</h1>" +
       '<div class="kv-grid2"><section><h2>Verkäufer/-in</h2>' +
       z("Name", d.v_name) + z("Straße", d.v_strasse) + z("PLZ Ort", d.v_ort) + z("Land", d.v_land) + z("Telefon", d.v_tel) + z("Ausweis-Nr.", d.v_ausweis) + z("Ausgestellt von", d.v_ausgestellt) +
@@ -1116,7 +1116,7 @@
       '<div class="kv-zeile"><span class="kv-lab">in Worten:</span><span class="kv-val">' + esc(d.worten || "") + "</span></div>" +
       '<p class="kv-text" style="margin:2mm 0 0">Der Betrag ist spätestens bei Übergabe des Gerätes fällig.</p></div>' +
       '<div class="kv-unterschriften"><div><span class="kv-linie">' + esc([d.ort, datum].filter(Boolean).join(", ")) + "</span>Ort, Datum</div>" +
-      '<div><span class="kv-linie"></span>Unterschrift Verkäufer/-in</div><div><span class="kv-linie"></span>Unterschrift Käufer/-in</div></div>' +
+      '<div><span class="kv-linie"></span>Unterschrift Verkäufer/-in</div><div><span class="kv-linie"></span>Unterschrift Käufer/-in</div></div></div>' +
       ((d.ausweis_vorne || d.ausweis_hinten) ? '<div class="kv-anlage"><h1>Anlage: Ausweiskopie</h1>' +
         '<p class="kv-text">Zum Kaufvertrag vom ' + esc(datum) + (d.v_name ? " – Verkäufer/-in: " + esc(d.v_name) : "") + "</p>" +
         ["vorne", "hinten"].filter(function (k) { return d["ausweis_" + k]; }).map(function (k) {
