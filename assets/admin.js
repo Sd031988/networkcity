@@ -883,6 +883,7 @@
       g_hersteller: "", g_produkt: "", g_serie: "", g_farbe: "", g_alter: "",
       ovp: "", zustand: "", funktion: "", optik: "", zubehoer: "", besonderheiten: "",
       begutachtet: false, preis: "", worten: "", ort: ort, datum: NC.todayIso(),
+      ausweis_vorne: "", ausweis_hinten: "", ausweis_ok: false,
     };
   }
 
@@ -894,6 +895,13 @@
       return '<fieldset class="kv-wahl"><legend>' + esc(label) + "</legend>" + opts.map(function (o) {
         return '<label class="check"><input type="radio" name="kv-' + id + '" value="' + esc(o[0]) + '"' + (d[id] === o[0] ? " checked" : "") + "> " + esc(o[1]) + "</label>";
       }).join("") + "</fieldset>";
+    }
+    function ausweisFeld(seite, label) {
+      const url = d["ausweis_" + seite];
+      return '<div class="kv-ausweis-feld"><strong>' + label + "</strong>" +
+        (url ? '<img src="' + url + '" alt="Ausweis ' + label + '">' : '<div class="kv-ausweis-leer">' + icon("photo_camera") + "<span>Noch kein Bild</span></div>") +
+        '<label class="btn small"><input type="file" accept="image/*" capture="environment" data-ausweis="' + seite + '" hidden>' + icon("photo_camera") + (url ? "Ersetzen" : "Foto / Datei wählen") + "</label>" +
+        (url ? '<button class="btn small danger" type="button" data-ausweis-weg="' + seite + '">' + icon("delete") + "Entfernen</button>" : "") + "</div>";
     }
     panel.innerHTML = '<div class="card form-stack"><h3>' + icon("description") + "Kaufvertrag (Ankauf)</h3>" +
       '<p class="muted small" style="margin:0">Formular ausfüllen und drucken. <strong>Es wird nichts gespeichert</strong> – Namen und Ausweisdaten bleiben nur in diesem Fenster und sind nach dem Neuladen weg. Leere Felder bleiben auf dem Ausdruck zum Ausfüllen per Hand frei.</p>' +
@@ -917,6 +925,11 @@
       wahl("zubehoer", "Zubehör", [["ok", "original und komplett"], ["siehe", "siehe Besonderheiten"]]) + "</div>" +
       field("Besonderheiten", area("kv-besonderheiten", d.besonderheiten, 3)) +
       check("kv-begutachtet", "Das Gerät wurde zuvor vom Käufer begutachtet", d.begutachtet) + "</div>" +
+
+      '<div class="card form-stack"><h3>' + icon("badge") + "Ausweiskopie (Anlage)</h3>" +
+      '<p class="muted small" style="margin:0">Foto oder Scan vom Ausweis des Verkäufers. Wird <strong>nicht gespeichert</strong> und nur als 2. Seite mit dem Vertrag gedruckt – deutlich als „KOPIE“ gekennzeichnet. Nur mit Zustimmung des Ausweisinhabers (§ 20 PAuswG).</p>' +
+      '<div class="kv-ausweis">' + ausweisFeld("vorne", "Vorderseite") + ausweisFeld("hinten", "Rückseite") + "</div>" +
+      check("kv-ausweis_ok", "Der Verkäufer ist mit der Kopie seines Ausweises einverstanden", d.ausweis_ok) + "</div>" +
 
       '<div class="card form-stack"><h3>' + icon("euro") + 'Kaufpreis</h3><div class="form-grid">' +
       field("Kaufpreis (EUR)", inp("kv-preis", d.preis, "number", ' min="0" step="0.01" inputmode="decimal"')) +
@@ -942,12 +955,39 @@
       if (e.target.id === "kv-worten") e.target.dataset.manuell = e.target.value ? "1" : "";
       lesen();
     });
-    panel.addEventListener("change", lesen);
+    panel.addEventListener("change", function (e) {
+      const seite = e.target.dataset && e.target.dataset.ausweis;
+      if (seite && e.target.files && e.target.files[0]) {
+        lesen();
+        if (d["ausweis_" + seite]) URL.revokeObjectURL(d["ausweis_" + seite]);
+        d["ausweis_" + seite] = URL.createObjectURL(e.target.files[0]);
+        renderPanel();
+        return;
+      }
+      lesen();
+    });
+    panel.addEventListener("click", function (e) {
+      const btn = e.target.closest("[data-ausweis-weg]");
+      if (!btn) return;
+      lesen();
+      const k = "ausweis_" + btn.dataset.ausweisWeg;
+      if (d[k]) URL.revokeObjectURL(d[k]);
+      d[k] = "";
+      renderPanel();
+    });
     ["kv-print", "kv-print2"].forEach(function (id) {
-      document.getElementById(id).addEventListener("click", function () { lesen(); vertragDrucken(d); });
+      document.getElementById(id).addEventListener("click", function () {
+        lesen();
+        if ((d.ausweis_vorne || d.ausweis_hinten) && !d.ausweis_ok) {
+          toast("Bitte zuerst bestätigen, dass der Verkäufer mit der Ausweiskopie einverstanden ist – oder die Bilder entfernen.", true);
+          return;
+        }
+        vertragDrucken(d);
+      });
     });
     document.getElementById("kv-reset").addEventListener("click", function () {
       if (!confirm("Alle Eingaben im Kaufvertrag löschen?")) return;
+      ["ausweis_vorne", "ausweis_hinten"].forEach(function (k) { if (d[k]) URL.revokeObjectURL(d[k]); });
       vertragDaten = vertragVorlage(); renderPanel();
     });
   }
@@ -985,8 +1025,17 @@
       '<div class="kv-zeile"><span class="kv-lab">in Worten:</span><span class="kv-val">' + esc(d.worten || "") + "</span></div>" +
       '<p class="kv-text" style="margin:2mm 0 0">Der Betrag ist spätestens bei Übergabe des Gerätes fällig.</p></div>' +
       '<div class="kv-unterschriften"><div><span class="kv-linie">' + esc([d.ort, datum].filter(Boolean).join(", ")) + "</span>Ort, Datum</div>" +
-      '<div><span class="kv-linie"></span>Unterschrift Verkäufer/-in</div><div><span class="kv-linie"></span>Unterschrift Käufer/-in</div></div>';
-    window.print();
+      '<div><span class="kv-linie"></span>Unterschrift Verkäufer/-in</div><div><span class="kv-linie"></span>Unterschrift Käufer/-in</div></div>' +
+      ((d.ausweis_vorne || d.ausweis_hinten) ? '<div class="kv-anlage"><h1>Anlage: Ausweiskopie</h1>' +
+        '<p class="kv-text">Zum Kaufvertrag vom ' + esc(datum) + (d.v_name ? " – Verkäufer/-in: " + esc(d.v_name) : "") + "</p>" +
+        ["vorne", "hinten"].filter(function (k) { return d["ausweis_" + k]; }).map(function (k) {
+          return '<div class="kv-kopie"><img src="' + d["ausweis_" + k] + '" alt=""><span class="kv-stempel">KOPIE</span></div>';
+        }).join("") +
+        '<p class="kv-text">' + box(d.ausweis_ok) + " Der Ausweisinhaber ist mit der Anfertigung dieser Kopie einverstanden. Die Kopie dient nur der Dokumentation dieses Ankaufs und wird nicht an Dritte weitergegeben.</p>" +
+        '<div class="kv-unterschriften" style="grid-template-columns:1fr 1fr"><div><span class="kv-linie"></span>Unterschrift Ausweisinhaber/-in</div><div></div></div></div>' : "");
+    const bilder = Array.prototype.slice.call(sheet.querySelectorAll("img"));
+    Promise.all(bilder.map(function (img) { return img.decode ? img.decode().catch(function () {}) : null; }))
+      .then(function () { window.print(); });
   }
 
   /* ---------------- Start ---------------- */
