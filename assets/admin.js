@@ -1010,6 +1010,42 @@
     vertragDaten[k] = url;
   }
 
+  // Weißen Rand (z. B. leere Fläche auf einem A4-Scan) automatisch abschneiden,
+  // damit der Ausweis groß gedruckt wird. Danach auf max. 1600 px verkleinern.
+  function zuschneidenUndExport(quelle) {
+    const w = quelle.width, h = quelle.height;
+    let x0 = w, y0 = h, x1 = -1, y1 = -1;
+    try {
+      const px = quelle.getContext("2d").getImageData(0, 0, w, h).data;
+      const schritt = Math.max(1, Math.round(Math.max(w, h) / 1500));
+      for (let y = 0; y < h; y += schritt) {
+        for (let x = 0; x < w; x += schritt) {
+          const i = (y * w + x) * 4;
+          if (px[i] < 225 || px[i + 1] < 225 || px[i + 2] < 225) {
+            if (x < x0) x0 = x; if (x > x1) x1 = x;
+            if (y < y0) y0 = y; if (y > y1) y1 = y;
+          }
+        }
+      }
+    } catch (e) { x1 = -1; }
+    let sx = 0, sy = 0, sw = w, sh = h;
+    if (x1 > x0 && y1 > y0) {
+      const rand = Math.round(Math.max(w, h) * 0.012);
+      sx = Math.max(0, x0 - rand); sy = Math.max(0, y0 - rand);
+      sw = Math.min(w, x1 + rand) - sx; sh = Math.min(h, y1 + rand) - sy;
+      // nur zuschneiden, wenn es sich lohnt (mehr als 10 % Fläche weg)
+      if (sw * sh > w * h * 0.9) { sx = 0; sy = 0; sw = w; sh = h; }
+    }
+    const f = Math.min(1, 1600 / Math.max(sw, sh));
+    const c = document.createElement("canvas");
+    c.width = Math.max(1, Math.round(sw * f)); c.height = Math.max(1, Math.round(sh * f));
+    const ctx = c.getContext("2d");
+    ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(quelle, sx, sy, sw, sh, 0, 0, c.width, c.height);
+    return c.toDataURL("image/jpeg", 0.9);
+  }
+
   // Foto öffnen, prüfen und als JPEG (data-URL) bereitstellen.
   // Formate, die der Browser nicht anzeigen kann (z. B. HEIC vom iPhone), werden hier abgelehnt.
   function bildZuJpeg(datei) {
@@ -1017,8 +1053,7 @@
       const url = URL.createObjectURL(datei);
       const img = new Image();
       img.onload = function () {
-        const max = 1600;
-        const f = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+        const f = Math.min(1, 3200 / Math.max(img.naturalWidth, img.naturalHeight));
         const c = document.createElement("canvas");
         c.width = Math.max(1, Math.round(img.naturalWidth * f));
         c.height = Math.max(1, Math.round(img.naturalHeight * f));
@@ -1026,7 +1061,7 @@
         ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
         ctx.drawImage(img, 0, 0, c.width, c.height);
         URL.revokeObjectURL(url);
-        ok(c.toDataURL("image/jpeg", 0.88));
+        ok(zuschneidenUndExport(c));
       };
       img.onerror = function () {
         URL.revokeObjectURL(url);
@@ -1070,14 +1105,14 @@
     for (let i = 1; i <= n; i++) {
       const seite = await doc.getPage(i);
       const basis = seite.getViewport({ scale: 1 });
-      const viewport = seite.getViewport({ scale: Math.min(3, 1600 / basis.width) });
+      const viewport = seite.getViewport({ scale: Math.min(6, 4200 / Math.max(basis.width, basis.height)) });
       const canvas = document.createElement("canvas");
       canvas.width = Math.round(viewport.width);
       canvas.height = Math.round(viewport.height);
       const ctx = canvas.getContext("2d");
       ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, canvas.width, canvas.height);
       await seite.render({ canvasContext: ctx, viewport: viewport }).promise;
-      urls.push(canvas.toDataURL("image/jpeg", 0.88));
+      urls.push(zuschneidenUndExport(canvas));
     }
     doc.destroy();
     return urls;
