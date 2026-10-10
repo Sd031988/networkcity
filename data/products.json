@@ -42,7 +42,7 @@
     "image": "f7d6c42975e44d5d94e2648391c01a4f.png",
     "featured": true,
     "available": true,
-    "online_sale": true,
+    "online_sale": false,
     "sold": false,
     "sold_at": "",
     "payment_methods": []
