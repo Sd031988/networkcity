@@ -71,6 +71,7 @@
   .kv-seite, .kv-anlage { padding: 14mm 15mm 10mm; }
   html, body { background: #fff !important; width: auto !important; min-width: 0 !important; display: block !important; margin: 0 !important; padding: 0 !important; }
   body > *:not(#print-sheet) { display: none !important; }
+  body::before { display: none !important; content: none !important; }
   #print-sheet { display: block !important; width: 100% !important; max-width: none; margin: 0 !important; color: #000; font: 10.5pt/1.35 Arial, Helvetica, sans-serif; }
   #print-sheet h1 { font-size: 17pt; margin: 0 0 4mm; }
   #print-sheet h2 { font-size: 11pt; margin: 0 0 2mm; }

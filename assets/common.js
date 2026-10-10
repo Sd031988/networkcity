@@ -33,6 +33,16 @@
       border: "#2A2A36", header: "rgba(13,13,18,0.80)",
       shadow: "0 16px 36px rgba(0,0,0,0.45)", on_primary: "#1A1005",
     },
+    nacht: {
+      label: "Networkcity Nacht (passend zum Logo)",
+      swatch: ["#FF7A1A", "#07080B", "#C9CDD3"],
+      primary: "#FF7A1A", primary_hover: "#FF9440", primary_soft: "#2B1708",
+      bg: "#07080B",
+      bg_grad: "none",
+      surface: "rgba(20,21,27,0.86)", surface2: "#181920", text: "#F2F3F5", muted: "#A6AAB3",
+      border: "rgba(255,255,255,0.09)", header: "rgba(7,8,11,0.82)",
+      shadow: "0 18px 40px rgba(0,0,0,0.55)", on_primary: "#140A02",
+    },
   };
   const DEFAULT_THEME = "orange";
 

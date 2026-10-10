@@ -31,7 +31,7 @@
   --radius: 18px;
   --maxw: 1180px;
 }
-[data-theme="dark"] {
+[data-theme="dark"], [data-theme="nacht"] {
   --nc-green: #4ADE80; --nc-green-soft: #12301D;
   --nc-blue: #93C5FD; --nc-blue-soft: #172554;
   --nc-red: #FCA5A5; --nc-red-soft: #3B1212;
@@ -325,7 +325,7 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
 .shop-gallery.count-3 .shop-photo:first-child img, .shop-gallery.count-4 .shop-photo:first-child img { aspect-ratio: 21/9; }
 /* Kontaktleiste oben + Telefon unter dem Namen */
 .topbar { background: #1C1917; color: #fff; font-size: .88rem; }
-[data-theme="dark"] .topbar { background: #000; }
+[data-theme="dark"] .topbar, [data-theme="nacht"] .topbar { background: #000; }
 .topbar .wrap { display: flex; flex-wrap: wrap; gap: 6px 22px; align-items: center; min-height: 38px; padding-top: 4px; padding-bottom: 4px; }
 .topbar a { color: #fff; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 .topbar a:hover { color: var(--nc-primary); }
@@ -339,3 +339,48 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
   .topbar .tb-addr, .topbar .tb-mail { display: none; }
   .topbar .wrap { justify-content: center; }
 }
+
+/* ===== Design „Networkcity Nacht“ – passend zum Logo =====
+   Ein Motiv: der leuchtende Netz-Globus aus dem Logo, ganz leise im Hintergrund,
+   dazu der orange Lichtbogen am unteren Rand. Alles andere bleibt ruhig. */
+[data-theme="nacht"] body { background: #07080B; }
+[data-theme="nacht"] body::before {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    url("bg-netz.svg") no-repeat right -220px top 30px / min(980px, 115vw) auto,
+    radial-gradient(70% 22% at 50% 100%, rgba(255, 122, 26, 0.20), rgba(255, 122, 26, 0) 70%),
+    radial-gradient(900px 520px at 8% -8%, rgba(255, 122, 26, 0.13), rgba(255, 122, 26, 0) 60%),
+    linear-gradient(180deg, #0A0B10 0%, #07080B 55%, #050507 100%);
+}
+@media (max-width: 760px) {
+  [data-theme="nacht"] body::before {
+    background-position: center 70px, 0 0, 0 0, 0 0;
+    background-size: 150vw auto, auto, auto, auto;
+  }
+}
+[data-theme="nacht"] .topbar { background: #000; border-bottom: 1px solid rgba(255, 122, 26, 0.35); }
+[data-theme="nacht"] .site-header { border-bottom-color: rgba(255, 255, 255, 0.07); }
+[data-theme="nacht"] .card {
+  background: linear-gradient(180deg, rgba(26, 27, 34, 0.88), rgba(16, 17, 22, 0.88));
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+}
+[data-theme="nacht"] a.card:hover { border-color: rgba(255, 122, 26, 0.55); }
+[data-theme="nacht"] .hero h1 {
+  background: linear-gradient(180deg, #FFFFFF 0%, #D9DCE1 55%, #9EA3AB 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+[data-theme="nacht"] .hero-img { box-shadow: 0 0 0 1px rgba(255, 122, 26, 0.25), 0 24px 70px rgba(255, 122, 26, 0.18); }
+[data-theme="nacht"] .btn.primary {
+  background: linear-gradient(180deg, #FF9440, #FF7A1A 60%, #E8650C);
+  border-color: #FF7A1A; box-shadow: 0 8px 24px rgba(255, 122, 26, 0.28);
+}
+[data-theme="nacht"] .btn.primary:hover { background: linear-gradient(180deg, #FFA55C, #FF8A2E 60%, #F0720F); }
+[data-theme="nacht"] .chip { background: rgba(255, 122, 26, 0.12); color: #FFB070; }
+[data-theme="nacht"] .price-discount { color: #FF8A73; }
+[data-theme="nacht"] .site-footer { background: rgba(0, 0, 0, 0.6); border-top-color: rgba(255, 122, 26, 0.25); }
+[data-theme="nacht"] .product-img { background: #0E0F13; }
+[data-theme="nacht"] dialog { background: #121318; }
+[data-theme="nacht"] .seg, [data-theme="nacht"] .cat-toggle,
+[data-theme="nacht"] input, [data-theme="nacht"] select, [data-theme="nacht"] textarea { background: #101116; }
+@media (prefers-reduced-transparency: reduce) { [data-theme="nacht"] .card { -webkit-backdrop-filter: none; backdrop-filter: none; background: #14151B; } }
+@media print { [data-theme="nacht"] body::before { display: none; } }
