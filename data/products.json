@@ -30,5 +30,21 @@
     "sold": false,
     "sold_at": "",
     "payment_methods": []
+  },
+  {
+    "id": "937771d5c7d34a888df78a88e4dde639",
+    "name": "Samsung A57 5G",
+    "category": "Smartphone",
+    "condition": "Neu",
+    "price": 360,
+    "old_price": 390,
+    "description": "128GB/8GB RAM",
+    "image": "f7d6c42975e44d5d94e2648391c01a4f.png",
+    "featured": true,
+    "available": true,
+    "online_sale": true,
+    "sold": false,
+    "sold_at": "",
+    "payment_methods": []
   }
 ]
