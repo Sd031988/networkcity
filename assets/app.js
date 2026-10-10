@@ -522,6 +522,33 @@
       '<div class="footer-links"><a href="#impressum">Impressum</a><a href="#datenschutz">Datenschutz</a></div>';
   }
 
+  // 3D-Neigen der Karten – nur mit Maus und wenn Bewegung nicht reduziert ist
+  (function setupTilt() {
+    if (!window.matchMedia || !matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const MAX = 7;
+    let current = null;
+    function reset(el) {
+      el.classList.remove("tilting");
+      el.style.removeProperty("--rx"); el.style.removeProperty("--ry");
+    }
+    app.addEventListener("pointermove", function (e) {
+      if (e.pointerType !== "mouse") return;
+      const el = e.target.closest(".service-card, .product");
+      if (current && current !== el) { reset(current); current = null; }
+      if (!el) return;
+      current = el;
+      const r = el.getBoundingClientRect();
+      const px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height;
+      el.classList.add("tilting");
+      el.style.setProperty("--ry", ((px - 0.5) * 2 * MAX).toFixed(2) + "deg");
+      el.style.setProperty("--rx", ((0.5 - py) * 2 * MAX).toFixed(2) + "deg");
+      el.style.setProperty("--mx", (px * 100).toFixed(1) + "%");
+      el.style.setProperty("--my", (py * 100).toFixed(1) + "%");
+    });
+    app.addEventListener("pointerleave", function () { if (current) { reset(current); current = null; } });
+  })();
+
   Promise.all([loadJson("data/settings.json"), loadJson("data/products.json")])
     .then(function (res) {
       settings = res[0];

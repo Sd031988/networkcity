@@ -384,3 +384,103 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
 [data-theme="nacht"] input, [data-theme="nacht"] select, [data-theme="nacht"] textarea { background: #101116; }
 @media (prefers-reduced-transparency: reduce) { [data-theme="nacht"] .card { -webkit-backdrop-filter: none; backdrop-filter: none; background: #14151B; } }
 @media print { [data-theme="nacht"] body::before { display: none; } }
+
+/* ===== 3D-Effekte: Icons, Karten, Knöpfe ===== */
+/* Service-Icons als runde 3D-Plakette (wie die Ring-Icons im Logo) */
+.service-card .ms.big {
+  display: inline-grid; place-items: center;
+  width: 64px; height: 64px; max-width: none; border-radius: 50%;
+  font-size: 1.9rem; vertical-align: middle;
+  color: var(--nc-primary);
+  background:
+    radial-gradient(circle at 32% 26%, rgba(255,255,255,.55), rgba(255,255,255,0) 42%),
+    radial-gradient(circle at 50% 60%, var(--nc-primary-soft), var(--nc-surface-2) 78%);
+  border: 2px solid var(--nc-primary);
+  box-shadow:
+    inset 0 -6px 12px rgba(0,0,0,.18),
+    inset 0 3px 6px rgba(255,255,255,.35),
+    0 6px 0 -1px color-mix(in srgb, var(--nc-primary) 55%, #000),
+    0 12px 22px rgba(0,0,0,.22);
+  transition: transform .35s cubic-bezier(.2,.8,.2,1.2), box-shadow .35s ease;
+}
+.service-card:hover .ms.big, .service-card:focus-visible .ms.big {
+  transform: translateY(-6px) scale(1.08) rotate(-6deg);
+  box-shadow:
+    inset 0 -6px 12px rgba(0,0,0,.18),
+    inset 0 3px 6px rgba(255,255,255,.35),
+    0 10px 0 -1px color-mix(in srgb, var(--nc-primary) 55%, #000),
+    0 22px 34px color-mix(in srgb, var(--nc-primary) 35%, transparent);
+}
+.service-card:active .ms.big { transform: translateY(1px) scale(.97); transition-duration: .08s; }
+
+/* Karten: 3D-Neigen (Maus) + Lichtreflex */
+.service-card, .product {
+  position: relative;
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(var(--lift, 0px));
+  transition: transform .45s cubic-bezier(.2,.8,.2,1), box-shadow .3s ease, border-color .3s ease;
+  will-change: transform;
+}
+.service-card::after, .product::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: radial-gradient(circle at var(--mx, 50%) var(--my, 0%), rgba(255,255,255,.16), transparent 55%);
+  opacity: 0; transition: opacity .3s ease;
+}
+.service-card:hover, .product:hover {
+  --lift: -6px;
+  box-shadow: 0 26px 50px rgba(0,0,0,.28), 0 0 0 1px color-mix(in srgb, var(--nc-primary) 35%, transparent);
+}
+.service-card:hover::after, .product:hover::after { opacity: 1; }
+.service-card.tilting, .product.tilting { transition: transform .08s linear, box-shadow .3s ease; }
+.service-card:active, .product:active { --lift: -1px; }
+.product .product-img img { transition: transform .5s cubic-bezier(.2,.8,.2,1); }
+.product:hover .product-img img { transform: scale(1.05); }
+
+/* Knöpfe: Tiefe + Drück-Effekt */
+.btn { box-shadow: 0 3px 0 rgba(0,0,0,.18), 0 6px 14px rgba(0,0,0,.10); }
+.btn:hover { transform: translateY(-2px); box-shadow: 0 5px 0 rgba(0,0,0,.18), 0 12px 22px rgba(0,0,0,.16); }
+.btn:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,.2), 0 2px 6px rgba(0,0,0,.12); transition-duration: .05s; }
+.btn.primary { box-shadow: 0 4px 0 color-mix(in srgb, var(--nc-primary) 55%, #000), 0 10px 22px color-mix(in srgb, var(--nc-primary) 28%, transparent); }
+.btn.primary:hover { transform: translateY(-2px); box-shadow: 0 6px 0 color-mix(in srgb, var(--nc-primary) 55%, #000), 0 16px 30px color-mix(in srgb, var(--nc-primary) 38%, transparent); }
+.btn.primary:active { transform: translateY(3px); box-shadow: 0 1px 0 color-mix(in srgb, var(--nc-primary) 55%, #000), 0 4px 10px color-mix(in srgb, var(--nc-primary) 25%, transparent); }
+.btn.menu-btn, .btn.icon-only { box-shadow: none; }
+
+/* Icons in Überschriften, Topbar und Menü: kleiner Sprung */
+.section-title .ms, .topbar a .ms, .nav a .ms { transition: transform .3s cubic-bezier(.2,.8,.2,1.4); }
+.section-title:hover .ms, .topbar a:hover .ms, .nav a:hover .ms { transform: translateY(-2px) scale(1.15) rotate(-8deg); }
+
+[data-theme="nacht"] .service-card .ms.big {
+  color: #FF9440;
+  background:
+    radial-gradient(circle at 32% 24%, rgba(255,255,255,.22), rgba(255,255,255,0) 40%),
+    radial-gradient(circle at 50% 62%, #2A1A0E, #0C0D11 80%);
+  box-shadow:
+    inset 0 -8px 14px rgba(0,0,0,.6),
+    inset 0 2px 5px rgba(255,255,255,.18),
+    0 0 0 4px rgba(255,122,26,.08),
+    0 5px 0 -1px #8A3D06,
+    0 0 26px rgba(255,122,26,.30);
+  text-shadow: 0 0 12px rgba(255,122,26,.6);
+}
+[data-theme="nacht"] .service-card:hover .ms.big {
+  box-shadow:
+    inset 0 -8px 14px rgba(0,0,0,.6),
+    inset 0 2px 5px rgba(255,255,255,.18),
+    0 0 0 6px rgba(255,122,26,.12),
+    0 9px 0 -1px #8A3D06,
+    0 0 44px rgba(255,122,26,.55);
+}
+[data-theme="nacht"] .service-card:hover, [data-theme="nacht"] .product:hover {
+  border-color: rgba(255,122,26,.55);
+  box-shadow: 0 28px 60px rgba(0,0,0,.6), 0 0 32px rgba(255,122,26,.16);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .service-card, .product, .btn, .service-card .ms.big, .section-title .ms, .topbar a .ms, .nav a .ms, .product .product-img img { transition: none !important; }
+  .service-card:hover, .product:hover { --lift: 0px; }
+  .service-card:hover .ms.big { transform: none; }
+  .product:hover .product-img img { transform: none; }
+}
+@media print {
+  .service-card, .product, .btn { transform: none !important; box-shadow: none !important; }
+  .service-card::after, .product::after { display: none; }
+}
