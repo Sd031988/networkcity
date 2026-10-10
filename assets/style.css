@@ -85,7 +85,7 @@ main { flex: 1; padding: 24px 0 48px; }
 }
 .site-header .wrap { display: flex; align-items: center; gap: 16px; min-height: 64px; }
 .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--nc-text); font-weight: 800; flex-shrink: 0; }
-.brand img { height: 40px; width: auto; border-radius: 8px; background: #000; }
+.brand img { height: 46px; width: auto; border-radius: 8px; background: #000; }
 .nav { display: flex; gap: 4px; margin-left: auto; }
 .nav a {
   text-decoration: none; color: var(--nc-text); font-weight: 600; font-size: .95rem;
@@ -147,7 +147,7 @@ section { margin-top: 44px; }
 
 /* Hero */
 .hero { text-align: center; padding: 8px 0 0; }
-.hero-img { width: min(520px, 100%); margin: 0 auto 22px; border-radius: 20px; box-shadow: var(--nc-shadow); }
+.hero-img { width: min(640px, 100%); margin: 0 auto 22px; border-radius: 20px; box-shadow: var(--nc-shadow); }
 .hero p.lead { font-size: 1.1rem; color: var(--nc-muted); max-width: 720px; margin: 0 auto 18px; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 20px; }
 .chip {
