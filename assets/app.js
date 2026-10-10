@@ -194,7 +194,7 @@
     let html = '<div class="hero">';
     if (b.hero_image) html += '<img class="hero-img" src="' + esc(imageUrl(b.hero_image)) + '" alt="Logo des Ladens ' + esc(b.name) + '">';
     html += "<h1>" + esc(b.hero_title) + '</h1><p class="lead">' + esc(b.hero_subtitle) + "</p>" +
-      '<div class="chips"><span class="chip">Neu & geprüft gebraucht</span><span class="chip">Reparatur</span><span class="chip">Internetcafé</span><span class="chip">Zubehör</span></div>' +
+      '<div class="chips"><a class="chip" href="#shop">Neu & geprüft gebraucht</a><a class="chip" href="#reparatur">Reparatur</a><a class="chip" href="#internetcafe">Internetcafé</a><a class="chip" href="#shop">Zubehör</a></div>' +
       '<div class="btn-row center"><a class="btn primary" href="#shop">' + icon("shopping_bag") + 'Zum Handy-Shop</a><a class="btn" href="#kontakt">' + icon("route") + "Kontakt & Anfahrt</a></div></div>";
     html += promoHtml();
     html += specialHoursBox();

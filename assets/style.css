@@ -484,3 +484,12 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
   .service-card, .product, .btn { transform: none !important; box-shadow: none !important; }
   .service-card::after, .product::after { display: none; }
 }
+
+/* Klickbare Stichwort-Chips im Startbereich */
+a.chip { text-decoration: none; cursor: pointer; border: 1px solid transparent;
+  transition: transform .25s cubic-bezier(.2,.8,.2,1.3), box-shadow .25s ease, border-color .25s ease, background .25s ease; }
+a.chip:hover, a.chip:focus-visible { transform: translateY(-2px); border-color: var(--nc-primary);
+  box-shadow: 0 3px 0 color-mix(in srgb, var(--nc-primary) 55%, #000), 0 8px 18px color-mix(in srgb, var(--nc-primary) 30%, transparent); }
+a.chip:active { transform: translateY(1px); box-shadow: none; transition-duration: .05s; }
+[data-theme="nacht"] a.chip:hover { background: rgba(255,122,26,.22); color: #FFC48F; }
+@media (prefers-reduced-motion: reduce) { a.chip { transition: none; } a.chip:hover { transform: none; } }
