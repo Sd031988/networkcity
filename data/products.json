@@ -46,5 +46,21 @@
     "sold": false,
     "sold_at": "",
     "payment_methods": []
+  },
+  {
+    "id": "84b295cf467f4c07b3c33532a61214a2",
+    "name": "IPhone 16 Pro max",
+    "category": "Smartphone",
+    "condition": "Neu",
+    "price": 1100,
+    "old_price": 1800,
+    "description": "256GB Gold frabe",
+    "image": "eacd7783527e4277aa31f45caec143c1.png",
+    "featured": true,
+    "available": true,
+    "online_sale": false,
+    "sold": false,
+    "sold_at": "",
+    "payment_methods": []
   }
 ]
