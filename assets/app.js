@@ -173,6 +173,7 @@
     let html = '<div class="promo" id="promo" style="height:clamp(220px, 62vw, ' + h + 'px)" aria-roledescription="Karussell"><div class="promo-track" id="promo-track">';
     slides.forEach(function (s, i) {
       html += '<div class="promo-slide' + (s.product ? " is-product" : "") + '" role="group" aria-label="Bild ' + (i + 1) + " von " + slides.length + '">' +
+        '<div class="promo-bg" style="background-image:url(\'' + esc(imageUrl(s.image)) + '\')" aria-hidden="true"></div>' +
         '<img src="' + esc(imageUrl(s.image)) + '" alt="' + esc(s.title || "Werbung") + '"' + (i ? ' loading="lazy"' : "") + ">";
       const parts = [];
       if (s.badge) parts.push('<span class="promo-badge">' + esc(s.badge) + "</span>");
@@ -260,8 +261,10 @@
           }).join("") +
         "</div>" +
       "</div></div>";
-    let html =
-      '<section class="x-hero">' +
+    const promo = promoHtml();
+    let html = promo ? '<div class="x-promo">' + promo + "</div>" : "";
+    html +=
+      '<section class="x-hero' + (promo ? " after-promo" : "") + '">' +
         '<div class="x-hero-text">' +
           '<p class="x-kicker">' + statusPill() + "</p>" +
           '<h1 class="x-title"><span>Internet.</span><span>Handys.</span><span class="x-accent">Reparatur.</span></h1>' +
@@ -270,8 +273,6 @@
         "</div>" + scene +
         '<a class="x-scroll" href="#start" data-xscroll aria-label="Nach unten scrollen"><span></span>Scrollen</a>' +
       "</section>";
-    // Werbung direkt nach dem Vollbild-Start – das Erste, was man beim Scrollen sieht
-    html += '<div class="x-promo">' + promoHtml() + "</div>";
     html +=
       '<section class="x-story" style="--n:' + steps.length + '"><div class="x-sticky">' +
         '<div class="x-story-visual" aria-hidden="true">' +
@@ -325,7 +326,10 @@
     function update() {
       ticking = false;
       const vh = window.innerHeight;
-      const hp = Math.min(1, Math.max(0, window.scrollY / Math.max(1, hero.offsetHeight)));
+      const hr = hero.getBoundingClientRect();
+      const top0 = parseFloat(getComputedStyle(root).getPropertyValue("--hdr-h")) || 0;
+      const hp = Math.min(1, Math.max(0, (top0 - hr.top) / Math.max(1, hr.height)));
+      if (hr.top < vh * 0.75) hero.classList.add("x-live");
       hero.style.setProperty("--p", hp.toFixed(3));
       document.body.classList.toggle("x-scrolled", window.scrollY > 40);
       const r = story.getBoundingClientRect();
