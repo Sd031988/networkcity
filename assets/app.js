@@ -233,13 +233,146 @@
 
   /* ---------- Seiten ---------- */
 
+  /* ---------- 3D-Erlebnis (Design „3D-Erlebnis“): Vollbild-Start + Scroll-Geschichte ---------- */
+
+  let immersiveOff = null;
+  function isImmersive() {
+    return document.documentElement.dataset.theme === "dark";
+  }
+
+  function immersiveHtml() {
+    const b = settings.business;
+    const c = settings.internetcafe || {}, r = settings.repair || {};
+    const steps = [
+      ["computer", "Internetcafé", c.text || "PC-Arbeitsplätze, Drucken, Kopieren, Scannen und WLAN.", "#internetcafe", "Zum Internetcafé"],
+      ["smartphone", "Handys", "Neu und geprüft gebraucht – zum fairen Preis, mit Gewährleistung und persönlicher Beratung im Laden.", "#shop", "Zum Handy-Shop"],
+      ["build", "Reparatur", r.text || "Display, Akku, Ladebuchse und mehr – schnell und zum fairen Preis.", "#reparatur", "Zur Reparatur"],
+      ["headphones", "Zubehör", "Hüllen, Ladegeräte, Kabel, Kopfhörer und mehr – passend zu Ihrem Gerät.", "#zubehoer", "Zum Zubehör"],
+    ];
+    const scene =
+      '<div class="x-scene" aria-hidden="true"><div class="x-tilt">' +
+        '<div class="x-glow"></div>' +
+        '<div class="x-ring r1"></div><div class="x-ring r2"></div><div class="x-ring r3"></div>' +
+        '<div class="x-globe"><div class="x-globe-net"></div></div>' +
+        '<div class="x-orbit">' +
+          ["computer", "smartphone", "build"].map(function (n, i) {
+            return '<div class="x-sat" style="--i:' + i + '"><div class="x-sat-in">' + icon(n, "badge3d") + "</div></div>";
+          }).join("") +
+        "</div>" +
+      "</div></div>";
+    let html =
+      '<section class="x-hero">' +
+        '<div class="x-hero-text">' +
+          '<p class="x-kicker">' + statusPill() + "</p>" +
+          '<h1 class="x-title"><span>Internet.</span><span>Handys.</span><span class="x-accent">Reparatur.</span></h1>' +
+          '<p class="x-lead">' + esc(b.hero_subtitle) + "</p>" +
+          '<div class="btn-row"><a class="btn primary" href="#shop">' + icon("smartphone") + 'Zum Handy-Shop</a><a class="btn" href="#kontakt">' + icon("route") + "Kontakt & Anfahrt</a></div>" +
+        "</div>" + scene +
+        '<a class="x-scroll" href="#start" data-xscroll aria-label="Nach unten scrollen"><span></span>Scrollen</a>' +
+      "</section>";
+    html +=
+      '<section class="x-story" style="--n:' + steps.length + '"><div class="x-sticky">' +
+        '<div class="x-story-visual" aria-hidden="true">' +
+          steps.map(function (st, i) { return '<div class="x-face" data-i="' + i + '">' + icon(st[0], "badge3d") + "</div>"; }).join("") +
+        "</div>" +
+        '<div class="x-story-text">' +
+          steps.map(function (st, i) {
+            return '<article class="x-step" data-i="' + i + '"><p class="x-step-num">' + String(i + 1).padStart(2, "0") + " / " + String(steps.length).padStart(2, "0") + "</p>" +
+              "<h2>" + esc(st[1]) + "</h2><p>" + esc(st[2]) + '</p><a class="btn primary" href="' + st[3] + '">' + esc(st[4]) + "</a></article>";
+          }).join("") +
+          '<div class="x-progress">' + steps.map(function (st, i) { return '<span data-i="' + i + '"></span>'; }).join("") + "</div>" +
+        "</div>" +
+      "</div></section>";
+    return html;
+  }
+
+  function initImmersive() {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const root = document.documentElement;
+    const header = document.querySelector(".site-header");
+    function chrome() {
+      root.style.setProperty("--chrome-h", Math.round(header.getBoundingClientRect().bottom + window.scrollY) + "px");
+      root.style.setProperty("--hdr-h", header.offsetHeight + "px");
+    }
+    chrome();
+    document.body.classList.add("x-on");
+
+    // Inhalte unterhalb beim Hereinscrollen einblenden
+    const blocks = app.querySelectorAll(":scope > section:not(.x-hero):not(.x-story), :scope > .promo, :scope > .card");
+    let io = null;
+    if (!reduce && "IntersectionObserver" in window) {
+      io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("x-in"); io.unobserve(e.target); } });
+      }, { rootMargin: "0px 0px -10% 0px" });
+      blocks.forEach(function (el) { el.classList.add("x-reveal"); io.observe(el); });
+    }
+
+    const hero = app.querySelector(".x-hero");
+    const story = app.querySelector(".x-story");
+    const steps = story.querySelectorAll(".x-step");
+    const faces = story.querySelectorAll(".x-face");
+    const bars = story.querySelectorAll(".x-progress span");
+    let active = -1, ticking = false;
+    function setActive(i) {
+      if (i === active) return;
+      active = i;
+      steps.forEach(function (el, k) { el.classList.toggle("on", k === i); el.classList.toggle("past", k < i); });
+      faces.forEach(function (el, k) { el.classList.toggle("on", k === i); el.classList.toggle("past", k < i); });
+      bars.forEach(function (el, k) { el.classList.toggle("on", k <= i); });
+    }
+    function update() {
+      ticking = false;
+      const vh = window.innerHeight;
+      const hp = Math.min(1, Math.max(0, window.scrollY / Math.max(1, hero.offsetHeight)));
+      hero.style.setProperty("--p", hp.toFixed(3));
+      document.body.classList.toggle("x-scrolled", window.scrollY > 40);
+      const r = story.getBoundingClientRect();
+      const total = Math.max(1, story.offsetHeight - vh);
+      const sp = Math.min(1, Math.max(0, -r.top / total));
+      story.style.setProperty("--sp", sp.toFixed(3));
+      setActive(Math.min(steps.length - 1, Math.floor(sp * steps.length * 0.999)));
+    }
+    function onScroll() { if (!ticking) { ticking = true; requestAnimationFrame(update); } }
+    // 3D-Szene folgt der Maus
+    const scene = hero.querySelector(".x-scene");
+    function onMove(e) {
+      if (reduce || e.pointerType !== "mouse") return;
+      const x = e.clientX / window.innerWidth - 0.5, y = e.clientY / window.innerHeight - 0.5;
+      scene.style.setProperty("--mx", (x * 22).toFixed(2) + "deg");
+      scene.style.setProperty("--my", (-y * 16).toFixed(2) + "deg");
+    }
+    hero.querySelector("[data-xscroll]").addEventListener("click", function (e) {
+      e.preventDefault();
+      window.scrollTo({ top: story.offsetTop - 60, behavior: reduce ? "auto" : "smooth" });
+    });
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", chrome);
+    window.addEventListener("resize", onScroll);
+    window.addEventListener("pointermove", onMove);
+    update();
+    immersiveOff = function () {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", chrome);
+      window.removeEventListener("resize", onScroll);
+      window.removeEventListener("pointermove", onMove);
+      if (io) io.disconnect();
+      document.body.classList.remove("x-on", "x-scrolled");
+      immersiveOff = null;
+    };
+  }
+
   function pageStart() {
     const b = settings.business;
-    let html = '<div class="hero">';
-    if (b.hero_image) html += '<img class="hero-img" src="' + esc(imageUrl(b.hero_image)) + '" alt="Logo des Ladens ' + esc(b.name) + '">';
-    html += "<h1>" + esc(b.hero_title) + '</h1><p class="lead">' + esc(b.hero_subtitle) + "</p>" +
-      '<div class="chips"><a class="chip" href="#shop">Neu & geprüft gebraucht</a><a class="chip" href="#reparatur">Reparatur</a><a class="chip" href="#internetcafe">Internetcafé</a><a class="chip" href="#zubehoer">Zubehör</a></div>' +
-      '<div class="btn-row center"><a class="btn primary" href="#shop">' + icon("shopping_bag") + 'Zum Handy-Shop</a><a class="btn" href="#kontakt">' + icon("route") + "Kontakt & Anfahrt</a></div></div>";
+    const immersive = isImmersive();
+    let html = "";
+    if (immersive) html += immersiveHtml();
+    else {
+      html += '<div class="hero">';
+      if (b.hero_image) html += '<img class="hero-img" src="' + esc(imageUrl(b.hero_image)) + '" alt="Logo des Ladens ' + esc(b.name) + '">';
+      html += "<h1>" + esc(b.hero_title) + '</h1><p class="lead">' + esc(b.hero_subtitle) + "</p>" +
+        '<div class="chips"><a class="chip" href="#shop">Neu & geprüft gebraucht</a><a class="chip" href="#reparatur">Reparatur</a><a class="chip" href="#internetcafe">Internetcafé</a><a class="chip" href="#zubehoer">Zubehör</a></div>' +
+        '<div class="btn-row center"><a class="btn primary" href="#shop">' + icon("shopping_bag") + 'Zum Handy-Shop</a><a class="btn" href="#kontakt">' + icon("route") + "Kontakt & Anfahrt</a></div></div>";
+    }
     html += promoHtml();
     html += specialHoursBox();
 
@@ -275,6 +408,7 @@
     html += cta("<strong>Haben Sie Fragen?</strong> Rufen Sie uns an unter <strong>" + esc(b.phone) + "</strong> oder schreiben Sie uns per WhatsApp – wir beraten Sie gerne.");
     app.innerHTML = html;
     initPromo();
+    if (immersive) initImmersive();
   }
 
   function pageCafe() {
@@ -553,6 +687,7 @@
   function route() {
     if (!settings) return;
     if (promoTimer) { clearInterval(promoTimer); promoTimer = null; }
+    if (immersiveOff) immersiveOff();
     let page = (location.hash || "#start").slice(1);
     if (!PAGES[page]) page = "start";
     nav.querySelectorAll("a").forEach(function (a) {

@@ -22,7 +22,7 @@
       shadow: "0 14px 34px rgba(15,23,42,0.08)", on_primary: "#FFFFFF",
     },
     dark: {
-      label: "Graphit & Chrom",
+      label: "3D-Erlebnis (Vollbild-Start mit Scroll-Effekten)",
       swatch: ["#FF8A3D", "#17181D", "#C9CDD3"],
       primary: "#FF8A3D", primary_hover: "#FFA060", primary_soft: "#33200F",
       bg: "#17181D", bg_grad: "none",
