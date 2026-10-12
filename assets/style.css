@@ -951,3 +951,5 @@ body.x-on .x-hero { min-height: calc(100svh - var(--chrome-h, 120px) - 70px); }
   .x-promo .promo-slide.is-product img { animation: none !important; transform: translateY(-54%); }
 }
 @media (prefers-reduced-motion: reduce) and (max-width: 760px) { .x-promo .promo-slide.is-product img { transform: translateX(-50%); } }
+/* Vollbild-Werbung in allen Designs: danach normaler Abstand zum Start */
+.hero.after-promo { padding-top: 40px; }

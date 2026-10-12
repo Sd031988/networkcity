@@ -373,13 +373,15 @@
     let html = "";
     if (immersive) html += immersiveHtml();
     else {
-      html += '<div class="hero">';
+      // Werbung in allen Designs ganz oben als Vollbild
+      const promo = promoHtml();
+      if (promo) html += '<div class="x-promo">' + promo + "</div>";
+      html += '<div class="hero' + (promo ? " after-promo" : "") + '">';
       if (b.hero_image) html += '<img class="hero-img" src="' + esc(imageUrl(b.hero_image)) + '" alt="Logo des Ladens ' + esc(b.name) + '">';
       html += "<h1>" + esc(b.hero_title) + '</h1><p class="lead">' + esc(b.hero_subtitle) + "</p>" +
         '<div class="chips"><a class="chip" href="#shop">Neu & geprüft gebraucht</a><a class="chip" href="#reparatur">Reparatur</a><a class="chip" href="#internetcafe">Internetcafé</a><a class="chip" href="#zubehoer">Zubehör</a></div>' +
         '<div class="btn-row center"><a class="btn primary" href="#shop">' + icon("shopping_bag") + 'Zum Handy-Shop</a><a class="btn" href="#kontakt">' + icon("route") + "Kontakt & Anfahrt</a></div></div>";
     }
-    if (!immersive) html += promoHtml();
     html += specialHoursBox();
 
     const featured = products.filter(function (p) { return p.featured && !NC.productIsHidden(p, settings.sold_remove_days); }).slice(0, 6);
@@ -703,6 +705,7 @@
     });
     nav.classList.remove("open");
     menuBtn.setAttribute("aria-expanded", "false");
+    measureChrome();
     PAGES[page]();
     const base = settings.business.name + " " + (settings.business.zip_city || "").replace(/^\d+\s*/, "").split("-")[0];
     document.title = (TITLES[page] ? TITLES[page] + " – " : "") + base.trim();
@@ -714,6 +717,14 @@
     menuBtn.setAttribute("aria-expanded", String(open));
   });
   window.addEventListener("hashchange", route);
+  function measureChrome() {
+    const hdr = document.querySelector(".site-header");
+    if (!hdr) return;
+    const root = document.documentElement;
+    root.style.setProperty("--chrome-h", Math.round(hdr.getBoundingClientRect().bottom + window.scrollY) + "px");
+    root.style.setProperty("--hdr-h", hdr.offsetHeight + "px");
+  }
+  window.addEventListener("resize", measureChrome);
   // „Zum Inhalt springen“ ohne die Seiten-Adresse zu ändern
   document.getElementById("skip-link").addEventListener("click", function (e) { e.preventDefault(); app.focus(); });
 
