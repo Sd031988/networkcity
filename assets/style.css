@@ -867,3 +867,8 @@ body.x-on:not(.x-scrolled) .site-header { background: transparent; box-shadow: n
   .x-progress { display: none; }
 }
 @media print { .x-scene, .x-scroll, .x-story-visual { display: none !important; } .x-story { height: auto; } .x-sticky { position: static; height: auto; } .x-step { position: static; opacity: 1; transform: none; } }
+/* Werbung im 3D-Erlebnis direkt unter dem Vollbild-Start */
+.x-promo { position: relative; z-index: 3; margin-top: 0; }
+body.x-on .x-hero { min-height: calc(100svh - var(--chrome-h, 120px) - 70px); }
+.x-promo:empty { display: none; }
+.x-promo .promo { margin-top: 0; box-shadow: 0 30px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(255,138,61,.25); }

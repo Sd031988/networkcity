@@ -270,6 +270,8 @@
         "</div>" + scene +
         '<a class="x-scroll" href="#start" data-xscroll aria-label="Nach unten scrollen"><span></span>Scrollen</a>' +
       "</section>";
+    // Werbung direkt nach dem Vollbild-Start – das Erste, was man beim Scrollen sieht
+    html += '<div class="x-promo">' + promoHtml() + "</div>";
     html +=
       '<section class="x-story" style="--n:' + steps.length + '"><div class="x-sticky">' +
         '<div class="x-story-visual" aria-hidden="true">' +
@@ -373,7 +375,7 @@
         '<div class="chips"><a class="chip" href="#shop">Neu & geprüft gebraucht</a><a class="chip" href="#reparatur">Reparatur</a><a class="chip" href="#internetcafe">Internetcafé</a><a class="chip" href="#zubehoer">Zubehör</a></div>' +
         '<div class="btn-row center"><a class="btn primary" href="#shop">' + icon("shopping_bag") + 'Zum Handy-Shop</a><a class="btn" href="#kontakt">' + icon("route") + "Kontakt & Anfahrt</a></div></div>";
     }
-    html += promoHtml();
+    if (!immersive) html += promoHtml();
     html += specialHoursBox();
 
     const featured = products.filter(function (p) { return p.featured && !NC.productIsHidden(p, settings.sold_remove_days); }).slice(0, 6);
