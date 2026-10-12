@@ -12,7 +12,12 @@
   let settings = null;
   let products = [];
   let promoTimer = null;
-  const shopState = { q: "", condition: "Alle", cats: null, sort: "Empfohlen" };
+  // Getrennte Filter für Handy-Shop und Zubehör
+  const shopStates = {
+    shop: { q: "", condition: "Alle", cats: null, sort: "Empfohlen" },
+    zubehoer: { q: "", condition: "Alle", cats: null, sort: "Empfohlen" },
+  };
+  function isAccessory(p) { return /zubeh/i.test(String(p.category || "")); }
 
   async function loadJson(path) {
     // Zeitstempel umgeht den Zwischenspeicher, damit Änderungen schnell sichtbar sind
@@ -69,7 +74,7 @@
 
     const img = p.image
       ? '<img src="' + esc(imageUrl(p.image)) + '" alt="Produktbild: ' + esc(p.name) + '" loading="lazy">'
-      : icon("phone_iphone");
+      : icon(isAccessory(p) ? "headphones" : "phone_iphone");
 
     const price = fmtPrice(p.price);
     let priceHtml = "";
@@ -144,7 +149,7 @@
         const pct = Number(p.old_price) > Number(p.price) && Number(p.price) > 0
           ? Math.round((1 - Number(p.price) / Number(p.old_price)) * 100) : 0;
         let text = price ? (old && pct ? "Jetzt " + price + " statt " + old + " (−" + pct + " %)" : price) : "";
-        slides.push({ image: p.image, badge: "Angebot", title: p.name, text: text, link: "#shop", link_label: "Im Shop ansehen", product: true });
+        slides.push({ image: p.image, badge: "Angebot", title: p.name, text: text, link: isAccessory(p) ? "#zubehoer" : "#shop", link_label: "Im Shop ansehen", product: true });
       });
     }
     if (!slides.length) return "";
@@ -217,7 +222,7 @@
     let html = '<div class="hero">';
     if (b.hero_image) html += '<img class="hero-img" src="' + esc(imageUrl(b.hero_image)) + '" alt="Logo des Ladens ' + esc(b.name) + '">';
     html += "<h1>" + esc(b.hero_title) + '</h1><p class="lead">' + esc(b.hero_subtitle) + "</p>" +
-      '<div class="chips"><a class="chip" href="#shop">Neu & geprüft gebraucht</a><a class="chip" href="#reparatur">Reparatur</a><a class="chip" href="#internetcafe">Internetcafé</a><a class="chip" href="#shop">Zubehör</a></div>' +
+      '<div class="chips"><a class="chip" href="#shop">Neu & geprüft gebraucht</a><a class="chip" href="#reparatur">Reparatur</a><a class="chip" href="#internetcafe">Internetcafé</a><a class="chip" href="#zubehoer">Zubehör</a></div>' +
       '<div class="btn-row center"><a class="btn primary" href="#shop">' + icon("shopping_bag") + 'Zum Handy-Shop</a><a class="btn" href="#kontakt">' + icon("route") + "Kontakt & Anfahrt</a></div></div>";
     html += promoHtml();
     html += specialHoursBox();
@@ -231,7 +236,7 @@
       ["computer", "Internetcafé", "PC-Arbeitsplätze, Drucken, Kopieren, Scannen und WLAN für alle.", "#internetcafe"],
       ["smartphone", "Handys neu & gebraucht", "Aktuelle Modelle und geprüfte Gebrauchtgeräte zum fairen Preis.", "#shop"],
       ["build", "Reparaturservice", "Schnelle Reparatur von Display, Akku, Ladebuchse und mehr.", "#reparatur"],
-      ["headphones", "Zubehör", "Hüllen, Ladegeräte, Kabel, Kopfhörer und vieles mehr im Laden.", "#shop"],
+      ["headphones", "Zubehör", "Hüllen, Ladegeräte, Kabel, Kopfhörer und vieles mehr im Laden.", "#zubehoer"],
     ];
     html += '<section><h2 class="section-title">' + icon("grid_view") + 'Unsere Services</h2><div class="grid c4">' +
       services.map(function (s) {
@@ -307,14 +312,23 @@
     });
   }
 
-  function pageShop() {
-    const visible = products.filter(function (p) { return !NC.productIsHidden(p, settings.sold_remove_days); });
+  function pageShop() { shopPage("shop"); }
+  function pageAccessories() { shopPage("zubehoer"); }
+
+  function shopPage(kind) {
+    const acc = kind === "zubehoer";
+    const shopState = shopStates[kind];
+    const visible = products.filter(function (p) { return !NC.productIsHidden(p, settings.sold_remove_days) && isAccessory(p) === acc; });
     const cats = Array.from(new Set(visible.map(function (p) { return p.category; }).filter(Boolean))).sort();
     if (!shopState.cats) shopState.cats = cats.slice();
 
-    app.innerHTML = pageHead("shopping_bag", "Handy-Shop", "Neu und geprüft gebraucht – zum fairen Preis, mit Gewährleistung und persönlicher Beratung direkt im Laden.") +
+    app.innerHTML = (acc
+      ? pageHead("headphones", "Zubehör", "Hüllen, Ladegeräte, Kabel, Kopfhörer und mehr – passend zu Ihrem Gerät und mit Beratung direkt im Laden.")
+      : pageHead("smartphone", "Handy-Shop", "Neu und geprüft gebraucht – zum fairen Preis, mit Gewährleistung und persönlicher Beratung direkt im Laden.")) +
+      '<nav class="shop-switch" aria-label="Bereich wählen"><a href="#shop"' + (acc ? "" : ' class="on" aria-current="page"') + ">" + icon("smartphone") + "Handys & Geräte</a>" +
+      '<a href="#zubehoer"' + (acc ? ' class="on" aria-current="page"' : "") + ">" + icon("headphones") + "Zubehör</a></nav>" +
       '<div class="filters card">' +
-      '<div class="filters-row"><label class="search"><span class="visually-hidden">Produkt suchen</span><input type="search" id="shop-q" placeholder="z. B. iPhone, Samsung, Hülle …" value="' + esc(shopState.q) + '"></label>' +
+      '<div class="filters-row"><label class="search"><span class="visually-hidden">Produkt suchen</span><input type="search" id="shop-q" placeholder="' + (acc ? "z. B. Hülle, Ladekabel, Kopfhörer …" : "z. B. iPhone, Samsung, Tablet …") + '" value="' + esc(shopState.q) + '"></label>' +
       '<div class="seg" id="shop-cond" role="group" aria-label="Zustand">' + ["Alle", "Neu", "Gebraucht"].map(function (c) {
         return '<button type="button" data-v="' + c + '" class="' + (shopState.condition === c ? "on" : "") + '" aria-pressed="' + (shopState.condition === c) + '">' + c + "</button>";
       }).join("") + "</div></div>" +
@@ -346,9 +360,11 @@
         const f = (a.featured ? 0 : 1) - (b.featured ? 0 : 1);
         return f || price(a) - price(b);
       });
-      document.getElementById("shop-count").textContent = list.length ? list.length + " Produkte" : "";
+      document.getElementById("shop-count").textContent = list.length ? list.length + (list.length === 1 ? " Artikel" : " Artikel") : "";
+      let empty = "Keine Produkte gefunden. Schauen Sie bald wieder vorbei!";
+      if (!visible.length && acc) empty = "Noch kein Zubehör online. Hüllen, Ladegeräte, Kabel, Kopfhörer und mehr finden Sie direkt bei uns im Laden.";
       document.getElementById("shop-grid").innerHTML = list.length ? list.map(productCard).join("")
-        : '<div class="empty" style="grid-column:1/-1">Keine Produkte gefunden. Schauen Sie bald wieder vorbei!</div>';
+        : '<div class="empty" style="grid-column:1/-1">' + icon(acc ? "headphones" : "smartphone", "badge3d") + "<p>" + empty + "</p></div>";
     }
 
     document.getElementById("shop-q").addEventListener("input", function (e) { shopState.q = e.target.value; renderList(); });
@@ -369,7 +385,9 @@
       renderList();
     });
     renderList();
-    document.getElementById("shop-cta").innerHTML = cta("<strong>Sie interessieren sich für ein Produkt?</strong> Rufen Sie uns an oder schreiben Sie uns per WhatsApp – wir legen es gerne für Sie zur Seite.");
+    document.getElementById("shop-cta").innerHTML = cta(acc
+      ? "<strong>Sie suchen passendes Zubehör?</strong> Fragen Sie uns per Telefon oder WhatsApp – wir sagen Ihnen, was für Ihr Gerät da ist."
+      : "<strong>Sie interessieren sich für ein Produkt?</strong> Rufen Sie uns an oder schreiben Sie uns per WhatsApp – wir legen es gerne für Sie zur Seite.");
   }
 
 
@@ -494,8 +512,8 @@
 
   /* ---------- Routing ---------- */
 
-  const PAGES = { start: pageStart, internetcafe: pageCafe, shop: pageShop, reparatur: pageRepair, kontakt: pageContact, impressum: pageImpressum, datenschutz: pageDatenschutz };
-  const TITLES = { start: "", internetcafe: "Internetcafé", shop: "Handy-Shop", reparatur: "Reparatur", kontakt: "Kontakt", impressum: "Impressum", datenschutz: "Datenschutz" };
+  const PAGES = { start: pageStart, internetcafe: pageCafe, shop: pageShop, zubehoer: pageAccessories, reparatur: pageRepair, kontakt: pageContact, impressum: pageImpressum, datenschutz: pageDatenschutz };
+  const TITLES = { start: "", internetcafe: "Internetcafé", shop: "Handy-Shop", zubehoer: "Zubehör", reparatur: "Reparatur", kontakt: "Kontakt", impressum: "Impressum", datenschutz: "Datenschutz" };
 
   function route() {
     if (!settings) return;

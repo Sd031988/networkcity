@@ -558,14 +558,24 @@
     panel.innerHTML = '<div class="card form-stack"><h3>' + icon("inventory") + "Produkte (" + products.length + ")</h3>" +
       '<p class="muted small" style="margin:0">Ist ein Produkt verkauft, „Verkauft“ anhaken – es bleibt noch ' + esc(settings.sold_remove_days != null ? settings.sold_remove_days : 7) +
       ' Tag(e) mit Hinweis sichtbar und verschwindet dann automatisch.</p>' +
-      '<div class="btn-row"><button class="btn primary" type="button" id="pd-add">' + icon("add_box") + 'Neues Produkt</button>' +
+      '<p class="muted small" style="margin:0">Produkte mit der Kategorie „Zubehör“ erscheinen auf der Website im Bereich <strong>Zubehör</strong>, alle anderen im <strong>Handy-Shop</strong>.</p>' +
+      '<div class="btn-row"><button class="btn primary" type="button" id="pd-add">' + icon("smartphone") + 'Neues Handy / Gerät</button>' +
+      '<button class="btn primary" type="button" id="pd-add-acc">' + icon("headphones") + 'Neues Zubehör</button></div>' +
+      '<div class="btn-row"><select id="pd-kind" style="width:auto"><option value="">Alle Produkte</option><option value="geraet"' + (panel.dataset.kind === "geraet" ? " selected" : "") + '>Nur Handys & Geräte</option><option value="zubehoer"' + (panel.dataset.kind === "zubehoer" ? " selected" : "") + '>Nur Zubehör</option></select>' +
       '<input type="search" id="pd-q" placeholder="Produkt suchen …" value="' + esc(q) + '" style="flex:1 1 200px;width:auto"></div>' +
       '<div class="rows" id="pd-list"></div></div>';
 
     function drawList() {
       const qq = val("pd-q").trim().toLowerCase();
       panel.dataset.q = qq;
-      const list = products.map(function (p, i) { return [p, i]; }).filter(function (x) { return !qq || String(x[0].name).toLowerCase().indexOf(qq) !== -1; });
+      const kind = val("pd-kind");
+      panel.dataset.kind = kind;
+      const list = products.map(function (p, i) { return [p, i]; }).filter(function (x) {
+        const acc = /zubeh/i.test(String(x[0].category || ""));
+        if (kind === "zubehoer" && !acc) return false;
+        if (kind === "geraet" && acc) return false;
+        return !qq || String(x[0].name).toLowerCase().indexOf(qq) !== -1;
+      });
       document.getElementById("pd-list").innerHTML = list.length ? list.map(function (x) {
         const p = x[0];
         const tags = [];
@@ -573,7 +583,7 @@
         if (p.available === false) tags.push('<span class="tag off">Ausgeblendet</span>');
         if (p.featured) tags.push('<span class="tag">Angebot</span>');
         if (p.online_sale) tags.push('<span class="tag">Online</span>');
-        return '<div class="list-item"><div class="thumb">' + (p.image ? '<img src="' + esc(imgSrc(p.image)) + '" alt="" loading="lazy">' : icon("phone_iphone")) + "</div>" +
+        return '<div class="list-item"><div class="thumb">' + (p.image ? '<img src="' + esc(imgSrc(p.image)) + '" alt="" loading="lazy">' : icon(/zubeh/i.test(String(p.category || "")) ? "headphones" : "phone_iphone")) + "</div>" +
           '<div class="meta"><strong>' + esc(p.name) + '</strong><span class="small">' + esc(NC.fmtPrice(p.price) || "ohne Preis") + " · " + esc(p.condition || "") + " · " + esc(p.category || "") + "</span><div>" + tags.join("") + "</div></div>" +
           '<div class="acts"><button class="btn small icon-only" type="button" data-edit="' + esc(p.id) + '" aria-label="Bearbeiten">' + icon("edit") + "</button>" +
           '<button class="btn small icon-only danger" type="button" data-del="' + esc(p.id) + '" aria-label="Löschen">' + icon("delete") + "</button></div></div>";
@@ -581,7 +591,9 @@
     }
     drawList();
     document.getElementById("pd-q").addEventListener("input", drawList);
-    document.getElementById("pd-add").addEventListener("click", function () { editProduct(null); });
+    document.getElementById("pd-kind").addEventListener("change", drawList);
+    document.getElementById("pd-add").addEventListener("click", function () { editProduct(null, "Smartphone"); });
+    document.getElementById("pd-add-acc").addEventListener("click", function () { editProduct(null, "Zubehör"); });
     document.getElementById("pd-list").addEventListener("click", function (e) {
       const b = e.target.closest("button"); if (!b) return;
       if (b.dataset.edit) return editProduct(b.dataset.edit);
@@ -597,13 +609,13 @@
     });
   }
 
-  function editProduct(id) {
+  function editProduct(id, presetCat) {
     const p = id ? products.find(function (x) { return String(x.id) === String(id); }) : null;
-    const d = p || { condition: "Neu", category: "Smartphone", available: true, online_sale: true };
+    const d = p || { condition: "Neu", category: presetCat || "Smartphone", available: true, online_sale: true };
     const cats = CATEGORIES.indexOf(d.category) === -1 && d.category ? CATEGORIES.concat([d.category]) : CATEGORIES;
     const methods = NC.enabledPaymentMethods(settings);
     const sel = d.payment_methods || [];
-    openDialog(p ? "Produkt bearbeiten" : "Neues Produkt",
+    openDialog(p ? "Produkt bearbeiten" : (d.category === "Zubehör" ? "Neues Zubehör" : "Neues Handy / Gerät"),
       field("Produktname", inp("p-name", d.name, "text", " required")) +
       '<div class="form-grid">' +
       field("Kategorie", '<select id="p-cat">' + cats.map(function (c) { return "<option" + (c === d.category ? " selected" : "") + ">" + esc(c) + "</option>"; }).join("") + "</select>") +

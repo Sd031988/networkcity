@@ -576,3 +576,91 @@ ol.steps .step:hover .step-num { transform: translateY(-4px) rotate(-8deg); }
 .product-img img { object-fit: contain; min-height: 0; }
 .product-img:has(img), [data-theme="nacht"] .product-img:has(img) { background: #fff; }
 .product-img img { padding: 10px; box-sizing: border-box; }
+
+/* ===== Helle Designs (Orange, Blau): schwarze Kopfzeile wie das Logo ===== */
+:is([data-theme="orange"], [data-theme="blue"]) { --nc-glow: 242, 107, 15; }
+[data-theme="blue"] { --nc-glow: 37, 99, 235; }
+:is([data-theme="orange"], [data-theme="blue"]) body::before {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(900px 420px at 85% -6%, rgba(var(--nc-glow), .16), rgba(var(--nc-glow), 0) 65%),
+    radial-gradient(70% 20% at 50% 100%, rgba(var(--nc-glow), .10), rgba(var(--nc-glow), 0) 70%),
+    linear-gradient(180deg, #FFFFFF 0%, var(--nc-bg) 60%);
+}
+:is([data-theme="orange"], [data-theme="blue"]) body::after {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: .22;
+  background: url("bg-netz.svg") no-repeat right -220px top 40px / min(980px, 115vw) auto;
+}
+:is([data-theme="orange"], [data-theme="blue"]) .topbar { background: #000; border-bottom: 1px solid rgba(var(--nc-glow), .45); }
+:is([data-theme="orange"], [data-theme="blue"]) .site-header { border-bottom: 1px solid rgba(255,255,255,.06); box-shadow: 0 10px 30px rgba(0,0,0,.12); }
+:is([data-theme="orange"], [data-theme="blue"]) .brand { color: #fff; }
+:is([data-theme="orange"], [data-theme="blue"]) .nav a { color: #E7E9ED; }
+:is([data-theme="orange"], [data-theme="blue"]) .nav a:hover { background: rgba(255,255,255,.08); color: #fff; }
+:is([data-theme="orange"], [data-theme="blue"]) .nav a.active { background: var(--nc-primary); color: #fff; }
+:is([data-theme="orange"], [data-theme="blue"]) .btn.menu-btn { background: rgba(255,255,255,.08); color: #fff; border-color: rgba(255,255,255,.15); }
+@media (max-width: 860px) {
+  :is([data-theme="orange"], [data-theme="blue"]) .nav { background: #0B0C10; border-bottom-color: rgba(255,255,255,.08); }
+}
+:is([data-theme="orange"], [data-theme="blue"]) .card { border-color: var(--nc-border); box-shadow: 0 1px 0 rgba(255,255,255,.8) inset, var(--nc-shadow); }
+:is([data-theme="orange"], [data-theme="blue"]) :is(.hero h1, .page-head h1) {
+  background: linear-gradient(180deg, #2A2C33 0%, #121317 60%, #3A3D45 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+:is([data-theme="orange"], [data-theme="blue"]) .hero-img { box-shadow: 0 24px 60px rgba(0,0,0,.25), 0 0 0 1px rgba(var(--nc-glow), .25); }
+:is([data-theme="orange"], [data-theme="blue"]) .btn.primary {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--nc-primary) 80%, #fff), var(--nc-primary) 60%, var(--nc-primary-hover));
+  border-color: var(--nc-primary);
+}
+:is([data-theme="orange"], [data-theme="blue"]) .site-footer { background: #07080B; color: #D6D8DD; border-top: 2px solid rgba(var(--nc-glow), .5); }
+:is([data-theme="orange"], [data-theme="blue"]) .site-footer a { color: #fff; }
+:is([data-theme="orange"], [data-theme="blue"]) .product-img:not(:has(img)) { background: var(--nc-surface-2); }
+/* 3D-Plaketten im hellen Design: weiß mit farbigem Ring */
+:is([data-theme="orange"], [data-theme="blue"]) .ms.badge3d,
+:is([data-theme="orange"], [data-theme="blue"]) .service-card .ms.big {
+  background: radial-gradient(circle at 32% 24%, #fff, #fff 30%, color-mix(in srgb, var(--nc-primary-soft) 70%, #fff) 100%);
+}
+
+/* ===== Graphit & Chrom ===== */
+[data-theme="dark"] body::before {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(120% 60% at 50% 118%, rgba(255,138,61,.22), rgba(255,138,61,0) 55%),
+    conic-gradient(from 200deg at 110% -10%, rgba(255,255,255,.07), rgba(255,255,255,0) 18%, rgba(255,255,255,0) 82%, rgba(255,255,255,.05)),
+    repeating-linear-gradient(115deg, rgba(255,255,255,.018) 0 2px, rgba(255,255,255,0) 2px 7px),
+    linear-gradient(180deg, #1C1D23 0%, #17181D 50%, #121317 100%);
+}
+[data-theme="dark"] .site-header {
+  background: linear-gradient(180deg, rgba(44,45,52,.92), rgba(24,25,30,.92));
+  border-bottom: 1px solid rgba(255,255,255,.10);
+  box-shadow: 0 1px 0 rgba(255,255,255,.06) inset, 0 10px 30px rgba(0,0,0,.35);
+}
+[data-theme="dark"] .topbar { border-bottom: 1px solid rgba(255,138,61,.4); }
+[data-theme="dark"] .card {
+  background: linear-gradient(180deg, rgba(44,45,53,.92), rgba(30,31,37,.92));
+  box-shadow: 0 1px 0 rgba(255,255,255,.07) inset, var(--nc-shadow);
+}
+[data-theme="dark"] :is(.hero h1, .page-head h1) {
+  background: linear-gradient(180deg, #FFFFFF 0%, #DADDE2 45%, #A9AEB6 70%, #D8DBE0 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+[data-theme="dark"] .btn.primary { background: linear-gradient(180deg, #FFA968, #FF8A3D 60%, #E8701F); }
+[data-theme="dark"] .btn:not(.primary) { background: linear-gradient(180deg, #34353D, #24252C); }
+[data-theme="dark"] .site-footer { background: #101114; border-top-color: rgba(255,138,61,.3); }
+[data-theme="dark"] .product-img:not(:has(img)) { background: #1C1D22; }
+[data-theme="dark"] .chip { background: rgba(255,138,61,.12); color: #FFB37F; }
+[data-theme="dark"] .ms.badge3d, [data-theme="dark"] .service-card .ms.big {
+  background: radial-gradient(circle at 32% 24%, rgba(255,255,255,.35), rgba(255,255,255,0) 40%), linear-gradient(180deg, #4A4C55, #24252C);
+}
+
+/* ===== Umschalter Handys / Zubehör ===== */
+.shop-switch { display: inline-flex; gap: 6px; padding: 5px; margin: 18px 0 0; border-radius: 999px;
+  background: var(--nc-surface); border: 1px solid var(--nc-border); box-shadow: var(--nc-shadow); }
+.shop-switch a { display: inline-flex; align-items: center; gap: 8px; padding: 9px 18px; border-radius: 999px;
+  text-decoration: none; color: var(--nc-text); font-weight: 700; transition: background .2s, color .2s, transform .2s; }
+.shop-switch a:hover { background: var(--nc-primary-soft); color: var(--nc-primary); }
+.shop-switch a.on { background: var(--nc-primary); color: var(--nc-on-primary);
+  box-shadow: 0 3px 0 color-mix(in srgb, var(--nc-primary) 55%, #000); }
+.empty .ms.badge3d { margin: 0 auto 14px; }
+.empty p { margin: 0 auto; max-width: 520px; }
+@media print { :is([data-theme="orange"], [data-theme="blue"], [data-theme="dark"]) body::before,
+  :is([data-theme="orange"], [data-theme="blue"]) body::after { display: none; } }
