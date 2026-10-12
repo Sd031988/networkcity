@@ -233,11 +233,11 @@
 
   /* ---------- Seiten ---------- */
 
-  /* ---------- 3D-Erlebnis (Design „3D-Erlebnis“): Vollbild-Start + Scroll-Geschichte ---------- */
+  /* ---------- 3D-Erlebnis (Design „Hell & Orange“): Vollbild-Start + Scroll-Geschichte ---------- */
 
   let immersiveOff = null;
   function isImmersive() {
-    return document.documentElement.dataset.theme === "dark";
+    return document.documentElement.dataset.theme === "orange";
   }
 
   function immersiveHtml() {

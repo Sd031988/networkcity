@@ -4,7 +4,7 @@
 
   const THEMES = {
     orange: {
-      label: "Hell & Orange (schwarze Kopfzeile wie das Logo)",
+      label: "Hell & Orange – 3D-Erlebnis (Vollbild-Start mit Scroll-Effekten)",
       swatch: ["#E8620C", "#07080B", "#F3F4F6"],
       primary: "#BF4A08", primary_hover: "#A63F05", primary_soft: "#FFF3EA",
       bg: "#F3F4F6", bg_grad: "none",
@@ -22,7 +22,7 @@
       shadow: "0 14px 34px rgba(15,23,42,0.08)", on_primary: "#FFFFFF",
     },
     dark: {
-      label: "3D-Erlebnis (Vollbild-Start mit Scroll-Effekten)",
+      label: "Graphit & Chrom",
       swatch: ["#FF8A3D", "#17181D", "#C9CDD3"],
       primary: "#FF8A3D", primary_hover: "#FFA060", primary_soft: "#33200F",
       bg: "#17181D", bg_grad: "none",
