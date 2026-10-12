@@ -39,9 +39,24 @@
     return '<section class="card cta"><p>' + textHtml + '</p><div class="btn-row">' + callButtons(settings.business) + "</div></section>";
   }
 
+  // Live-Anzeige „Jetzt geöffnet“ (wird jede Minute aktualisiert)
+  function statusInner() {
+    const st = NC.openStatus(settings);
+    const cls = st.open ? (st.soon ? "soon" : "open") : "closed";
+    const label = st.open ? (st.soon ? "Schließt bald" : "Jetzt geöffnet") : "Geschlossen";
+    return '<span class="dot ' + cls + '"></span><strong>' + label + "</strong>" + (st.text ? '<span class="os-text"> · ' + esc(st.text) + "</span>" : "");
+  }
+  function statusPill(extra) {
+    return '<span class="open-status' + (extra ? " " + extra : "") + '" role="status">' + statusInner() + "</span>";
+  }
+  setInterval(function () {
+    if (!settings) return;
+    document.querySelectorAll(".open-status").forEach(function (el) { el.innerHTML = statusInner(); });
+  }, 60000);
+
   function hoursList() {
-    const todayName = NC.WEEKDAYS_DE[(new Date().getDay() + 6) % 7];
-    return '<ul class="hours">' + (settings.hours || []).map(function (r) {
+    const todayName = NC.WEEKDAYS_DE[(NC.berlinNow().getDay() + 6) % 7];
+    return statusPill("in-card") + '<ul class="hours">' + (settings.hours || []).map(function (r) {
       const t = r.open ? esc(r.open) + " – " + esc(r.close) + " Uhr" : "Geschlossen";
       const today = r.day === todayName;
       return '<li class="' + (today ? "today" : "") + '"><span>' + esc(r.day) + (today ? ' <em class="today-tag">Heute</em>' : "") + "</span><span>" + t + "</span></li>";
@@ -98,7 +113,8 @@
 
     const desc = String(p.description || "").trim();
     return '<article class="card product' + (sold ? " is-sold" : "") + '">' +
-      '<div class="product-img">' + img + "</div>" +
+      (p.image ? '<button class="product-img zoomable" type="button" data-zoom="' + esc(p.id) + '" aria-label="Bild vergrößern: ' + esc(p.name) + '">' + img + '<span class="zoom-hint">' + icon("visibility") + "</span></button>"
+        : '<div class="product-img">' + img + "</div>") +
       '<div class="product-body">' + badge +
       '<div class="product-name">' + esc(p.name) + "</div>" + priceHtml +
       (desc ? '<p class="product-desc">' + esc(desc) + "</p>" : "") +
@@ -507,7 +523,26 @@
   });
   app.addEventListener("click", function (e) {
     const btn = e.target.closest("[data-buy]");
-    if (btn) openBuy(btn.dataset.buy);
+    if (btn) return openBuy(btn.dataset.buy);
+    const z = e.target.closest("[data-zoom]");
+    if (z) openZoom(z.dataset.zoom);
+  });
+
+  // Großansicht eines Produktbilds
+  const zoomDlg = document.createElement("dialog");
+  zoomDlg.className = "zoom-dialog";
+  zoomDlg.setAttribute("aria-label", "Produktbild");
+  document.body.appendChild(zoomDlg);
+  function openZoom(id) {
+    const p = products.find(function (x) { return String(x.id) === String(id); });
+    if (!p || !p.image) return;
+    zoomDlg.innerHTML = '<button class="btn icon-only small zoom-close" type="button" data-close aria-label="Schließen">' + icon("close") + "</button>" +
+      '<img src="' + esc(imageUrl(p.image)) + '" alt="Produktbild: ' + esc(p.name) + '">' +
+      '<div class="zoom-cap"><strong>' + esc(p.name) + "</strong>" + (fmtPrice(p.price) && !p.sold ? "<span>" + fmtPrice(p.price) + "</span>" : "") + "</div>";
+    zoomDlg.showModal();
+  }
+  zoomDlg.addEventListener("click", function (e) {
+    if (e.target === zoomDlg || e.target.closest("[data-close]")) zoomDlg.close();
   });
 
   /* ---------- Routing ---------- */
@@ -538,6 +573,8 @@
     menuBtn.setAttribute("aria-expanded", String(open));
   });
   window.addEventListener("hashchange", route);
+  // „Zum Inhalt springen“ ohne die Seiten-Adresse zu ändern
+  document.getElementById("skip-link").addEventListener("click", function (e) { e.preventDefault(); app.focus(); });
 
   function renderChrome() {
     const b = settings.business;
@@ -556,16 +593,63 @@
 
     // Kontaktleiste ganz oben
     const tb = document.getElementById("topbar");
-    const items = [];
+    const items = [statusPill("in-topbar")];
     if (telLink(b.phone)) items.push('<a href="' + esc(telLink(b.phone)) + '">' + icon("call") + "<span>" + esc(b.phone) + "</span></a>");
-    if (waLink(b.whatsapp)) items.push('<a href="' + esc(waLink(b.whatsapp)) + '" target="_blank" rel="noopener">' + icon("chat") + "<span>WhatsApp</span></a>");
+    if (waLink(b.whatsapp)) items.push('<a href="' + esc(waLink(b.whatsapp)) + '" target="_blank" rel="noopener" class="tb-wa">' + icon("chat") + "<span>WhatsApp</span></a>");
     if (b.email) items.push('<a href="mailto:' + esc(b.email) + '" class="tb-mail">' + icon("mail") + "<span>" + esc(b.email) + "</span></a>");
     if (b.street) items.push('<a href="#kontakt" class="tb-addr">' + icon("place") + "<span>" + esc(b.street) + ", " + esc(b.zip_city) + "</span></a>");
     if (items.length) { tb.innerHTML = '<div class="wrap">' + items.join("") + "</div>"; tb.hidden = false; }
-    footer.innerHTML = "<div><strong>" + esc(b.name) + "</strong><br>" + esc(b.street) + ", " + esc(b.zip_city) + "</div>" +
-      "<div>" + (telLink(b.phone) ? '<a href="' + esc(telLink(b.phone)) + '">' + icon("call") + " " + esc(b.phone) + "</a><br>" : "") +
-      (b.email ? '<a href="mailto:' + esc(b.email) + '">' + icon("mail") + " " + esc(b.email) + "</a>" : "") + "</div>" +
-      '<div class="footer-links"><a href="#impressum">Impressum</a><a href="#datenschutz">Datenschutz</a></div>';
+
+    // Strukturierte Daten für Google (Adresse, Telefon, Öffnungszeiten) – immer aus den aktuellen Einstellungen
+    try {
+      const zc = /^(\d{5})\s*(.*)$/.exec(String(b.zip_city || "").trim()) || [];
+      const dayEn = { Montag: "Monday", Dienstag: "Tuesday", Mittwoch: "Wednesday", Donnerstag: "Thursday", Freitag: "Friday", Samstag: "Saturday", Sonntag: "Sunday" };
+      const ld = {
+        "@context": "https://schema.org", "@type": "ElectronicsStore",
+        name: (b.name || "Networkcity") + " Heidelberg", url: location.origin + "/",
+        image: b.hero_image ? new URL(imageUrl(b.hero_image), location.href).href : undefined,
+        logo: b.logo ? new URL(imageUrl(b.logo), location.href).href : undefined,
+        telephone: b.phone || undefined, email: b.email || undefined,
+        address: { "@type": "PostalAddress", streetAddress: b.street, postalCode: zc[1], addressLocality: zc[2] || b.zip_city, addressCountry: "DE" },
+        openingHoursSpecification: (settings.hours || []).filter(function (r) { return r.open && dayEn[r.day]; }).map(function (r) {
+          return { "@type": "OpeningHoursSpecification", dayOfWeek: "https://schema.org/" + dayEn[r.day], opens: r.open, closes: r.close };
+        }),
+      };
+      let el = document.getElementById("ld-business");
+      if (!el) { el = document.createElement("script"); el.type = "application/ld+json"; el.id = "ld-business"; document.head.appendChild(el); }
+      el.textContent = JSON.stringify(ld);
+    } catch (e) { /* ohne strukturierte Daten weiter */ }
+
+    // Schwebende Kontakt-Knöpfe (nur Handy-Ansicht)
+    const fab = [];
+    if (telLink(b.phone)) fab.push('<a class="fab call" href="' + esc(telLink(b.phone)) + '" aria-label="Anrufen">' + icon("call") + "</a>");
+    if (waLink(b.whatsapp)) fab.push('<a class="fab wa" href="' + esc(waLink(b.whatsapp)) + '" target="_blank" rel="noopener" aria-label="WhatsApp schreiben">' + icon("chat") + "<span>WhatsApp</span></a>");
+    if (fab.length && !document.getElementById("fab")) {
+      const f = document.createElement("div"); f.id = "fab"; f.className = "fab-bar"; f.innerHTML = fab.join("");
+      document.body.appendChild(f); document.body.classList.add("has-fab");
+    }
+    // Fußzeile: Marke, Seiten, Kontakt, Öffnungszeiten
+    const short = { Montag: "Mo", Dienstag: "Di", Mittwoch: "Mi", Donnerstag: "Do", Freitag: "Fr", Samstag: "Sa", Sonntag: "So" };
+    const groups = [];
+    (settings.hours || []).forEach(function (r) {
+      const t = r.open ? r.open + " – " + r.close + " Uhr" : "geschlossen";
+      const g = groups[groups.length - 1];
+      if (g && g.t === t) g.to = r.day; else groups.push({ from: r.day, to: r.day, t: t });
+    });
+    const hoursHtml = groups.map(function (g) {
+      return "<li><span>" + esc(short[g.from] || g.from) + (g.to !== g.from ? "–" + esc(short[g.to] || g.to) : "") + "</span><span>" + esc(g.t) + "</span></li>";
+    }).join("");
+    footer.innerHTML =
+      '<div class="f-col f-brand">' + (b.logo ? '<img src="' + esc(imageUrl(b.logo)) + '" alt="' + esc(b.name) + '" loading="lazy">' : "<strong>" + esc(b.name) + "</strong>") +
+        (b.tagline ? "<p>" + esc(b.tagline) + "</p>" : "") + statusPill("in-footer") + "</div>" +
+      '<nav class="f-col" aria-label="Seiten in der Fußzeile"><h4>Seiten</h4><a href="#internetcafe">Internetcafé</a><a href="#shop">Handy-Shop</a><a href="#zubehoer">Zubehör</a><a href="#reparatur">Reparatur</a><a href="#kontakt">Kontakt & Anfahrt</a></nav>' +
+      '<div class="f-col"><h4>Kontakt</h4>' +
+        (b.street ? "<p>" + esc(b.street) + "<br>" + esc(b.zip_city) + "</p>" : "") +
+        (telLink(b.phone) ? '<a href="' + esc(telLink(b.phone)) + '">' + icon("call") + " " + esc(b.phone) + "</a>" : "") +
+        (waLink(b.whatsapp) ? '<a href="' + esc(waLink(b.whatsapp)) + '" target="_blank" rel="noopener">' + icon("chat") + " WhatsApp</a>" : "") +
+        (b.email ? '<a href="mailto:' + esc(b.email) + '">' + icon("mail") + " " + esc(b.email) + "</a>" : "") + "</div>" +
+      '<div class="f-col"><h4>Öffnungszeiten</h4><ul class="f-hours">' + hoursHtml + "</ul></div>" +
+      '<div class="f-bottom"><span>© ' + NC.berlinNow().getFullYear() + " " + esc(b.name) + '</span><span class="footer-links"><a href="#impressum">Impressum</a><a href="#datenschutz">Datenschutz</a></span></div>';
   }
 
   // 3D-Neigen der Karten – nur mit Maus und wenn Bewegung nicht reduziert ist

@@ -5,8 +5,8 @@
   const THEMES = {
     orange: {
       label: "Hell & Orange (schwarze Kopfzeile wie das Logo)",
-      swatch: ["#F26B0F", "#07080B", "#F3F4F6"],
-      primary: "#F26B0F", primary_hover: "#D95B06", primary_soft: "#FFEBDC",
+      swatch: ["#E8620C", "#07080B", "#F3F4F6"],
+      primary: "#BF4A08", primary_hover: "#A63F05", primary_soft: "#FFF3EA",
       bg: "#F3F4F6", bg_grad: "none",
       surface: "#FFFFFF", surface2: "#F7F7F9", text: "#121317", muted: "#5F6672",
       border: "#E3E5EA", header: "rgba(7,8,11,0.94)",
@@ -15,7 +15,7 @@
     blue: {
       label: "Hell & Blau (schwarze Kopfzeile)",
       swatch: ["#2563EB", "#07080B", "#F2F5FA"],
-      primary: "#2563EB", primary_hover: "#1D4ED8", primary_soft: "#E3ECFF",
+      primary: "#2563EB", primary_hover: "#1D4ED8", primary_soft: "#EDF3FF",
       bg: "#F2F5FA", bg_grad: "none",
       surface: "#FFFFFF", surface2: "#F5F8FD", text: "#0F172A", muted: "#5B6679",
       border: "#DDE4F0", header: "rgba(7,8,11,0.94)",
@@ -115,6 +115,47 @@
     return out;
   }
 
+  // Aktuelle Uhrzeit in Heidelberg (unabhängig von der Zeitzone des Besuchers)
+  function berlinNow() {
+    try {
+      const parts = {};
+      new Intl.DateTimeFormat("de-DE", { timeZone: "Europe/Berlin", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })
+        .formatToParts(new Date()).forEach(function (x) { parts[x.type] = x.value; });
+      return new Date(Number(parts.year), Number(parts.month) - 1, Number(parts.day), Number(parts.hour), Number(parts.minute));
+    } catch (e) { return new Date(); }
+  }
+  function isoOf(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+  function toMin(t) { const m = /^(\d{1,2}):(\d{2})/.exec(String(t || "")); return m ? Number(m[1]) * 60 + Number(m[2]) : null; }
+
+  // Öffnungszeiten für ein Datum (Sonderöffnungszeiten haben Vorrang)
+  function hoursFor(settings, d) {
+    const iso = isoOf(d);
+    const sp = (settings.special_hours || []).find(function (r) { return String(r.date || "").slice(0, 10) === iso; });
+    const row = sp || (settings.hours || []).find(function (r) { return r.day === WEEKDAYS_DE[(d.getDay() + 6) % 7]; });
+    if (!row || !row.open) return null;
+    const o = toMin(row.open), c = toMin(row.close);
+    if (o == null || c == null) return null;
+    return { open: o, close: c <= o ? c + 1440 : c, openText: row.open, closeText: row.close };
+  }
+
+  // „Jetzt geöffnet“ / „Geschlossen – öffnet …“
+  function openStatus(settings) {
+    const now = berlinNow();
+    const mins = now.getHours() * 60 + now.getMinutes();
+    const yesterday = new Date(now); yesterday.setDate(now.getDate() - 1);
+    const y = hoursFor(settings, yesterday);
+    if (y && y.close > 1440 && mins < y.close - 1440) return { open: true, soon: y.close - 1440 - mins <= 60, text: "bis " + y.closeText + " Uhr" };
+    const t = hoursFor(settings, now);
+    if (t && mins >= t.open && mins < t.close) return { open: true, soon: t.close - mins <= 60, text: "bis " + t.closeText + " Uhr" };
+    if (t && mins < t.open) return { open: false, text: "öffnet heute um " + t.openText + " Uhr" };
+    for (let i = 1; i <= 14; i++) {
+      const d = new Date(now); d.setDate(now.getDate() + i);
+      const h = hoursFor(settings, d);
+      if (h) return { open: false, text: "öffnet " + (i === 1 ? "morgen" : WEEKDAYS_DE[(d.getDay() + 6) % 7]) + " um " + h.openText + " Uhr" };
+    }
+    return { open: false, text: "" };
+  }
+
   function productIsHidden(p, soldRemoveDays) {
     if (p.available === false) return true;
     if (!p.sold) return false;
@@ -160,7 +201,7 @@
   global.NC = {
     THEMES: THEMES, DEFAULT_THEME: DEFAULT_THEME, WEEKDAYS_DE: WEEKDAYS_DE,
     applyTheme: applyTheme, esc: esc, fmtPrice: fmtPrice, discountText: discountText,
-    todayIso: todayIso, upcomingSpecialHours: upcomingSpecialHours, productIsHidden: productIsHidden,
+    todayIso: todayIso, upcomingSpecialHours: upcomingSpecialHours, openStatus: openStatus, berlinNow: berlinNow, productIsHidden: productIsHidden,
     enabledPaymentMethods: enabledPaymentMethods, paymentMethodsFor: paymentMethodsFor,
     digitsOnly: digitsOnly, waLink: waLink, telLink: telLink, imageUrl: imageUrl, icon: icon, uid: uid,
   };

@@ -173,16 +173,27 @@
       const img = new Image();
       img.onload = function () {
         URL.revokeObjectURL(url);
-        if (img.naturalWidth <= maxW && file.size < 900000) return resolve(file);
+        if (img.naturalWidth <= maxW && file.size < 350000) return resolve(file);
         const scale = Math.min(1, maxW / img.naturalWidth);
         const c = document.createElement("canvas");
         c.width = Math.round(img.naturalWidth * scale);
         c.height = Math.round(img.naturalHeight * scale);
         const ctx = c.getContext("2d");
-        const keepPng = file.type === "image/png";
-        if (!keepPng) { ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height); }
         ctx.drawImage(img, 0, 0, c.width, c.height);
-        c.toBlob(function (b) { resolve(b && b.size < file.size ? b : file); }, keepPng ? "image/png" : "image/jpeg", 0.85);
+        // PNG nur behalten, wenn es wirklich durchsichtige Stellen hat (z. B. Logo) – sonst als kleineres JPG speichern
+        let keepPng = false;
+        if (file.type === "image/png") {
+          try {
+            const px = ctx.getImageData(0, 0, c.width, c.height).data;
+            for (let i = 3; i < px.length; i += 4) { if (px[i] < 250) { keepPng = true; break; } }
+          } catch (e) { keepPng = true; }
+        }
+        if (!keepPng) {
+          const c2 = document.createElement("canvas"); c2.width = c.width; c2.height = c.height;
+          const x2 = c2.getContext("2d"); x2.fillStyle = "#fff"; x2.fillRect(0, 0, c2.width, c2.height); x2.drawImage(c, 0, 0);
+          return c2.toBlob(function (b) { resolve(b && b.size < file.size ? b : file); }, "image/jpeg", 0.82);
+        }
+        c.toBlob(function (b) { resolve(b && b.size < file.size ? b : file); }, "image/png");
       };
       img.onerror = function () { URL.revokeObjectURL(url); resolve(file); };
       img.src = url;
