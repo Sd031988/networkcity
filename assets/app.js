@@ -38,7 +38,8 @@
     const todayName = NC.WEEKDAYS_DE[(new Date().getDay() + 6) % 7];
     return '<ul class="hours">' + (settings.hours || []).map(function (r) {
       const t = r.open ? esc(r.open) + " – " + esc(r.close) + " Uhr" : "Geschlossen";
-      return '<li class="' + (r.day === todayName ? "today" : "") + '"><span>' + esc(r.day) + "</span><span>" + t + "</span></li>";
+      const today = r.day === todayName;
+      return '<li class="' + (today ? "today" : "") + '"><span>' + esc(r.day) + (today ? ' <em class="today-tag">Heute</em>' : "") + "</span><span>" + t + "</span></li>";
     }).join("") + "</ul>";
   }
 
@@ -99,9 +100,31 @@
       '<div class="product-foot">' + foot + "</div></div></article>";
   }
 
+  // Seitenkopf mit 3D-Icon-Plakette
+  function pageHead(iconName, title, leadText) {
+    return '<header class="page-head">' + icon(iconName, "badge3d") + '<div><h1>' + esc(title) + "</h1>" +
+      (leadText ? '<p class="lead">' + esc(leadText) + "</p>" : "") + "</div></header>";
+  }
+
+  // Passendes Icon anhand des Leistungsnamens (Namen sind in der Verwaltung frei änderbar)
+  const SERVICE_ICONS = [
+    [/display|touch|glas|bildschirm/i, "smartphone"], [/akku|batter/i, "battery_charging_full"],
+    [/lade|buchse|mikro|kabel/i, "cable"], [/wasser|feucht|flüssig/i, "water_drop"],
+    [/software|update|virus|system/i, "memory"], [/daten|rettung|backup/i, "sd_card"],
+    [/kamera|foto/i, "photo_camera"], [/pc|computer|rechner|internet/i, "computer"],
+    [/druck/i, "print"], [/kopie|kopier/i, "content_copy"], [/scan/i, "scanner"],
+    [/fax/i, "fax"], [/wlan|wifi/i, "wifi"], [/lautspr|hörer|audio/i, "headphones"],
+  ];
+  function serviceIcon(name) {
+    for (let i = 0; i < SERVICE_ICONS.length; i++) if (SERVICE_ICONS[i][0].test(name || "")) return SERVICE_ICONS[i][1];
+    return "sell";
+  }
+
   function servicePriceRows(list) {
-    return '<div class="list-gap">' + (list || []).map(function (s) {
-      return '<div class="card price-row"><strong>' + esc(s.name) + '</strong><span class="p">' + esc(s.price) + '</span><span class="muted">' + esc(s.description) + "</span></div>";
+    return '<div class="list-gap price-list">' + (list || []).map(function (s) {
+      return '<div class="card price-row">' + icon(serviceIcon(s.name), "badge3d small") +
+        '<div class="pr-text"><strong>' + esc(s.name) + '</strong><span class="muted">' + esc(s.description) + "</span></div>" +
+        '<span class="p">' + esc(s.price) + "</span></div>";
     }).join("") + "</div>";
   }
 
@@ -235,19 +258,19 @@
 
   function pageCafe() {
     const c = settings.internetcafe || {};
-    let html = '<h1 class="section-title">' + icon("computer") + esc(c.title || "Internetcafé") + "</h1><p>" + esc(c.text) + "</p>";
-    if ((c.bullet_points || []).length) html += '<ul class="bullets">' + c.bullet_points.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>";
+    let html = pageHead("computer", c.title || "Internetcafé", c.text);
+    if ((c.bullet_points || []).length) html += '<ul class="feature-chips">' + c.bullet_points.map(function (x) { return "<li>" + icon("check_circle") + "<span>" + esc(x) + "</span></li>"; }).join("") + "</ul>";
     html += '<section><h2 class="section-title">' + icon("receipt_long") + "Leistungen & Preise</h2>" + servicePriceRows(c.services) + "</section>";
-    html += '<section class="card"><p style="margin:0"><strong>Gerne können Sie einfach vorbeikommen</strong> – meist ist direkt ein Platz frei. Egal ob für die schnelle E-Mail, das Ausdrucken von Tickets oder eine Zeit am Rechner: Wir sind für Sie da.</p></section>';
+    html += cta("<strong>Gerne können Sie einfach vorbeikommen</strong> – meist ist direkt ein Platz frei. Egal ob für die schnelle E-Mail, das Ausdrucken von Tickets oder eine Zeit am Rechner: Wir sind für Sie da.");
     app.innerHTML = html;
   }
 
   function pageRepair() {
     const r = settings.repair || {};
-    let html = '<h1 class="section-title">' + icon("build") + esc(r.title || "Handy-Reparatur") + "</h1><p>" + esc(r.text) + "</p>";
+    let html = pageHead("build", r.title || "Handy-Reparatur", r.text);
     if ((r.steps || []).length) {
-      html += '<section><h2 class="section-title">' + icon("checklist") + 'So einfach geht\'s</h2><div class="list-gap">' +
-        r.steps.map(function (s, i) { return '<div class="card step"><span class="step-num">' + (i + 1) + "</span><span>" + esc(s) + "</span></div>"; }).join("") + "</div></section>";
+      html += '<section><h2 class="section-title">' + icon("checklist") + 'So einfach geht\'s</h2><ol class="steps">' +
+        r.steps.map(function (s, i) { return '<li class="card step"><span class="step-num">' + (i + 1) + "</span><span>" + esc(s) + "</span></li>"; }).join("") + "</ol></section>";
     }
     html += '<section><h2 class="section-title">' + icon("receipt_long") + "Leistungen & Preise</h2>" + servicePriceRows(r.services) + "</section>";
     html += cta("<strong>Bringen Sie Ihr Gerät einfach vorbei</strong> oder rufen Sie vorher kurz an. Die Prüfung ist kostenlos und Sie bekommen für alles ein faires Angebot.");
@@ -256,11 +279,17 @@
 
   function pageContact() {
     const b = settings.business;
-    let html = '<h1 class="section-title">' + icon("contact_phone") + "Kontakt & Anfahrt</h1>" + specialHoursBox();
+    let html = pageHead("contact_phone", "Kontakt & Anfahrt", "Rufen Sie an, schreiben Sie per WhatsApp oder kommen Sie direkt im Laden vorbei.") + specialHoursBox();
+    const rows = [];
+    if (b.street) rows.push(['place', "Adresse", esc(b.street) + "<br>" + esc(b.zip_city), "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(b.street + ", " + b.zip_city), true]);
+    if (telLink(b.phone)) rows.push(["call", "Telefon", esc(b.phone), telLink(b.phone)]);
+    if (waLink(b.whatsapp)) rows.push(["chat", "WhatsApp", esc(b.whatsapp), waLink(b.whatsapp), true]);
+    if (b.email) rows.push(["mail", "E-Mail", esc(b.email), "mailto:" + b.email]);
     html += '<section class="grid c2" style="margin-top:24px"><div class="card"><h2 class="section-title">' + icon("contact_page") + "Kontakt</h2>" +
-      "<p><strong>Adresse</strong><br>" + esc(b.street) + "<br>" + esc(b.zip_city) + "</p>" +
-      "<p><strong>Telefon:</strong> " + esc(b.phone) + "<br><strong>WhatsApp:</strong> " + esc(b.whatsapp) + "<br><strong>E-Mail:</strong> " +
-      (b.email ? '<a href="mailto:' + esc(b.email) + '">' + esc(b.email) + "</a>" : "") + "</p>" +
+      '<ul class="contact-list">' + rows.map(function (r) {
+        return '<li><a href="' + esc(r[3]) + '"' + (r[4] ? ' target="_blank" rel="noopener"' : "") + ">" + icon(r[0], "badge3d small") +
+          '<span><span class="cl-label">' + r[1] + "</span>" + r[2] + "</span></a></li>";
+      }).join("") + "</ul>" +
       '<div class="btn-row">' + callButtons(b) + (b.email ? '<a class="btn" href="mailto:' + esc(b.email) + '">' + icon("mail") + "E-Mail</a>" : "") + "</div></div>" +
       '<div class="card"><h2 class="section-title">' + icon("schedule") + "Öffnungszeiten</h2>" + hoursList() + "</div></section>";
     if (b.map_url && /^https:\/\/(www\.)?(google\.[a-z.]+|maps\.google\.[a-z.]+)\//i.test(b.map_url)) {
@@ -283,9 +312,8 @@
     const cats = Array.from(new Set(visible.map(function (p) { return p.category; }).filter(Boolean))).sort();
     if (!shopState.cats) shopState.cats = cats.slice();
 
-    app.innerHTML = '<h1 class="section-title">' + icon("shopping_bag") + "Handy-Shop</h1>" +
-      "<p>Neu und geprüft gebraucht – zum fairen Preis, mit Gewährleistung und persönlicher Beratung direkt im Laden.</p>" +
-      '<div class="filters">' +
+    app.innerHTML = pageHead("shopping_bag", "Handy-Shop", "Neu und geprüft gebraucht – zum fairen Preis, mit Gewährleistung und persönlicher Beratung direkt im Laden.") +
+      '<div class="filters card">' +
       '<div class="filters-row"><label class="search"><span class="visually-hidden">Produkt suchen</span><input type="search" id="shop-q" placeholder="z. B. iPhone, Samsung, Hülle …" value="' + esc(shopState.q) + '"></label>' +
       '<div class="seg" id="shop-cond" role="group" aria-label="Zustand">' + ["Alle", "Neu", "Gebraucht"].map(function (c) {
         return '<button type="button" data-v="' + c + '" class="' + (shopState.condition === c ? "on" : "") + '" aria-pressed="' + (shopState.condition === c) + '">' + c + "</button>";
@@ -373,7 +401,7 @@
 
   function pageImpressum() {
     const d = legalData(), b = d.b;
-    let html = '<h1 class="section-title">' + icon("badge") + 'Impressum</h1><div class="card legal">' +
+    let html = pageHead("badge", "Impressum") + '<div class="card legal">' +
       "<h2>Angaben gemäß § 5 DDG</h2>" + addressBlock(d) +
       "<h2>Kontakt</h2><p>" +
       (b.phone ? "Telefon: " + esc(b.phone) + "<br>" : "") +
@@ -388,7 +416,7 @@
   function pageDatenschutz() {
     const d = legalData(), b = d.b;
     const ext = function (href, text) { return '<a href="' + href + '" target="_blank" rel="noopener">' + text + "</a>"; };
-    app.innerHTML = '<h1 class="section-title">' + icon("security") + 'Datenschutzerklärung</h1><div class="card legal">' +
+    app.innerHTML = pageHead("security", "Datenschutzerklärung") + '<div class="card legal">' +
       "<h2>1. Verantwortlicher</h2>" + addressBlock(d) + "<p>" +
       (b.phone ? "Telefon: " + esc(b.phone) + "<br>" : "") +
       (b.email ? 'E-Mail: <a href="mailto:' + esc(b.email) + '">' + esc(b.email) + "</a>" : "") + "</p>" +

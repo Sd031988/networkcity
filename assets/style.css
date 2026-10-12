@@ -387,7 +387,7 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
 
 /* ===== 3D-Effekte: Icons, Karten, Knöpfe ===== */
 /* Service-Icons als runde 3D-Plakette (wie die Ring-Icons im Logo) */
-.service-card .ms.big {
+.service-card .ms.big, .ms.badge3d {
   display: inline-grid; place-items: center;
   width: 64px; height: 64px; max-width: none; border-radius: 50%;
   font-size: 1.9rem; vertical-align: middle;
@@ -448,7 +448,7 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
 .section-title .ms, .topbar a .ms, .nav a .ms { transition: transform .3s cubic-bezier(.2,.8,.2,1.4); }
 .section-title:hover .ms, .topbar a:hover .ms, .nav a:hover .ms { transform: translateY(-2px) scale(1.15) rotate(-8deg); }
 
-[data-theme="nacht"] .service-card .ms.big {
+[data-theme="nacht"] .service-card .ms.big, [data-theme="nacht"] .ms.badge3d {
   color: #FF9440;
   background:
     radial-gradient(circle at 32% 24%, rgba(255,255,255,.22), rgba(255,255,255,0) 40%),
@@ -493,3 +493,86 @@ a.chip:hover, a.chip:focus-visible { transform: translateY(-2px); border-color: 
 a.chip:active { transform: translateY(1px); box-shadow: none; transition-duration: .05s; }
 [data-theme="nacht"] a.chip:hover { background: rgba(255,122,26,.22); color: #FFC48F; }
 @media (prefers-reduced-motion: reduce) { a.chip { transition: none; } a.chip:hover { transform: none; } }
+
+/* ===== Unterseiten ===== */
+/* Seitenkopf mit großer 3D-Plakette */
+.page-head { display: flex; align-items: center; gap: 22px; margin: 6px 0 8px; }
+.page-head h1 { margin: 0 0 6px; }
+.page-head .lead { margin: 0; color: var(--nc-muted); font-size: 1.06rem; max-width: 760px; }
+.page-head .ms.badge3d { width: 84px; height: 84px; font-size: 2.5rem; flex-shrink: 0; animation: nc-pop .6s cubic-bezier(.2,.8,.2,1.3) both; }
+.page-head:hover .ms.badge3d { transform: translateY(-4px) rotate(-6deg) scale(1.05); }
+[data-theme="nacht"] .page-head h1 {
+  background: linear-gradient(180deg, #FFFFFF 0%, #D9DCE1 55%, #9EA3AB 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+@keyframes nc-pop { from { opacity: 0; transform: translateY(10px) scale(.85) rotate(-12deg); } to { opacity: 1; transform: none; } }
+@media (max-width: 640px) {
+  .page-head { gap: 14px; align-items: flex-start; }
+  .page-head .ms.badge3d { width: 60px; height: 60px; font-size: 1.8rem; }
+}
+
+/* Kleine Plakette (Preislisten, Kontakt) */
+.ms.badge3d.small { width: 46px; height: 46px; font-size: 1.35rem; border-width: 1.5px; flex-shrink: 0; }
+
+/* Vorteile Internetcafé */
+.feature-chips { list-style: none; padding: 0; margin: 22px 0 0; display: flex; flex-wrap: wrap; gap: 10px; }
+.feature-chips li { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: 999px;
+  background: var(--nc-surface); border: 1px solid var(--nc-border); font-weight: 600; box-shadow: 0 3px 0 rgba(0,0,0,.18); }
+.feature-chips .ms { color: var(--nc-primary); }
+
+/* Preisliste */
+.price-list .price-row { display: flex; align-items: center; gap: 16px; padding: 14px 20px; position: relative; overflow: hidden;
+  transition: transform .3s cubic-bezier(.2,.8,.2,1), border-color .3s ease, box-shadow .3s ease; }
+.price-list .price-row::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--nc-primary);
+  transform: scaleY(0); transition: transform .3s ease; }
+.price-list .price-row:hover { transform: translateX(4px); border-color: color-mix(in srgb, var(--nc-primary) 45%, transparent); }
+.price-list .price-row:hover::before { transform: scaleY(1); }
+.price-list .price-row:hover .ms.badge3d { transform: translateY(-3px) rotate(-8deg) scale(1.06); }
+.pr-text { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pr-text .muted { font-size: .93rem; }
+.price-list .p { flex-shrink: 0; padding: 6px 14px; border-radius: 999px; font-weight: 800; color: var(--nc-primary);
+  background: var(--nc-primary-soft); border: 1px solid color-mix(in srgb, var(--nc-primary) 40%, transparent); white-space: nowrap; }
+@media (max-width: 640px) {
+  .price-list .price-row { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; }
+  .price-list .p { grid-column: 2; justify-self: start; }
+}
+
+/* Reparatur: Ablauf als Zeitleiste */
+ol.steps { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 18px; counter-reset: s; }
+ol.steps .step { position: relative; flex-direction: column; align-items: flex-start; gap: 14px; }
+ol.steps .step:not(:last-child)::after { content: ""; position: absolute; top: 41px; left: calc(100% + 1px); width: 17px; height: 2px;
+  background: linear-gradient(90deg, var(--nc-primary), transparent); }
+.step-num { width: 50px; height: 50px; font-size: 1.25rem;
+  background: radial-gradient(circle at 32% 26%, rgba(255,255,255,.45), rgba(255,255,255,0) 45%), linear-gradient(180deg, var(--nc-primary-hover), var(--nc-primary));
+  box-shadow: inset 0 -4px 8px rgba(0,0,0,.25), 0 4px 0 color-mix(in srgb, var(--nc-primary) 55%, #000), 0 10px 20px color-mix(in srgb, var(--nc-primary) 30%, transparent);
+  transition: transform .35s cubic-bezier(.2,.8,.2,1.3); }
+ol.steps .step:hover .step-num { transform: translateY(-4px) rotate(-8deg); }
+@media (max-width: 700px) { ol.steps .step:not(:last-child)::after { display: none; } }
+
+/* Kontaktliste */
+.contact-list { list-style: none; padding: 0; margin: 0 0 18px; display: flex; flex-direction: column; gap: 6px; }
+.contact-list a { display: flex; align-items: center; gap: 14px; padding: 8px 10px; margin: 0 -10px; border-radius: 14px;
+  color: inherit; text-decoration: none; transition: background .25s ease; }
+.contact-list a:hover { background: var(--nc-primary-soft); }
+.contact-list a:hover .ms.badge3d { transform: translateY(-3px) rotate(-8deg) scale(1.06); }
+.cl-label { display: block; font-size: .8rem; color: var(--nc-muted); font-weight: 600; }
+
+/* Öffnungszeiten: heute hervorheben */
+.hours li.today { background: var(--nc-primary-soft); border-radius: 10px; padding: 6px 10px; margin: 0 -10px; border-bottom-color: transparent; }
+.today-tag { font-style: normal; font-size: .72rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; margin-left: 6px;
+  background: var(--nc-primary); color: var(--nc-on-primary); vertical-align: 1px; }
+
+/* Shop-Filter als Glasfläche */
+.filters.card { padding: 16px 18px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .page-head .ms.badge3d { animation: none; }
+  .price-list .price-row, .step-num, .ms.badge3d { transition: none !important; }
+  .price-list .price-row:hover { transform: none; }
+}
+
+/* Shop: alle Produktbilder gleich hoch, ganzes Gerät sichtbar */
+.product-img { overflow: hidden; flex-shrink: 0; }
+.product-img img { object-fit: contain; min-height: 0; }
+.product-img:has(img), [data-theme="nacht"] .product-img:has(img) { background: #fff; }
+.product-img img { padding: 10px; box-sizing: border-box; }
