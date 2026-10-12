@@ -62,5 +62,21 @@
     "sold": false,
     "sold_at": "",
     "payment_methods": []
+  },
+  {
+    "id": "efc92d7e118142e4b5654c3dfa68a674",
+    "name": "Samsung S26 Ultra",
+    "category": "Smartphone",
+    "condition": "Neu",
+    "price": 950,
+    "old_price": 1549,
+    "description": "",
+    "image": "b6fb4b1a705f43609cb55d14a65f3b16.png",
+    "featured": true,
+    "available": true,
+    "online_sale": false,
+    "sold": false,
+    "sold_at": "",
+    "payment_methods": []
   }
 ]
