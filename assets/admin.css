@@ -106,3 +106,37 @@
   .kv-stempel { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(-25deg); font: 700 40pt Arial, sans-serif; color: rgba(200, 0, 0, .45); border: 4px solid rgba(200, 0, 0, .45); padding: 1mm 6mm; letter-spacing: 4mm; pointer-events: none; }
 }
 @media print { .kv-anlage .kv-unterschriften { margin-top: 6mm; } .kv-kopie { break-inside: avoid; } .kv-anlage h1 { margin-bottom: 2mm !important; } .kv-anlage > .kv-text { margin-bottom: 2mm; } }
+
+/* ===== Quittung – Druck (A4) ===== */
+@media print {
+  .q-seite { position: relative; width: 210mm; height: 296mm; overflow: hidden; padding: 14mm 18mm 16mm; display: flex; flex-direction: column;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  /* Logo groß und ganz hell im Hintergrund über das ganze Blatt */
+  .q-wasser { position: absolute; left: 50%; top: 52%; width: 185mm; transform: translate(-50%, -50%) rotate(-12deg); opacity: .07; z-index: 0; pointer-events: none; }
+  .q-seite > *:not(.q-wasser) { position: relative; z-index: 1; }
+  .q-absender { font-size: 8pt; color: #555; border-bottom: .3mm solid #E8620C; padding-bottom: 1.5mm; margin-bottom: 8mm; letter-spacing: .2mm; }
+  .q-kopf { display: flex; justify-content: space-between; align-items: flex-start; gap: 10mm; margin-bottom: 12mm; }
+  #print-sheet .q-titel h1 { font-size: 30pt; letter-spacing: -.5pt; margin: 6mm 0 6mm; color: #111; }
+  .q-meta { border-collapse: collapse; font-size: 10.5pt; }
+  .q-meta td { padding: 1mm 6mm 1mm 0; vertical-align: top; }
+  .q-meta td:first-child { color: #555; }
+  .q-logo { width: 72mm; text-align: right; }
+  .q-logo img { width: 66mm; height: auto; display: block; margin: 0 0 4mm auto; }
+  .q-kontakt { font-size: 9.5pt; line-height: 1.45; color: #222; }
+  .q-posten { width: 100%; border-collapse: collapse; font-size: 11pt; }
+  .q-posten th { text-align: left; font-size: 9pt; text-transform: none; color: #555; font-weight: 600; border-bottom: .4mm solid #111; padding: 2mm 0; }
+  .q-posten td { padding: 4mm 0; vertical-align: top; border-bottom: .2mm solid #BBB; }
+  .q-posten .r { text-align: right; }
+  .q-modell { font-size: 15pt; font-weight: 700; margin-bottom: 2mm; }
+  .q-imei { font-size: 11pt; margin-bottom: 1mm; font-variant-numeric: tabular-nums; }
+  .q-zustand { font-size: 10pt; color: #444; }
+  .q-betrag { font-size: 12pt; white-space: nowrap; }
+  .q-summe { display: flex; justify-content: space-between; align-items: baseline; margin: 5mm 0 7mm; padding: 3mm 0; border-bottom: .8mm double #111; }
+  .q-summe span { font-size: 13pt; font-weight: 700; }
+  .q-summe strong { font-size: 20pt; }
+  .q-hinweis { font-size: 10pt; margin: 0 0 2.5mm; color: #222; }
+  .q-garantie { font-size: 11.5pt; font-weight: 700; margin: 3mm 0 3mm; padding: 2.5mm 4mm; border-left: 1.2mm solid #E8620C; background: rgba(232, 98, 12, .07); }
+  .q-unterschrift { margin-top: auto; width: 75mm; font-size: 9pt; color: #444; }
+  .q-unterschrift span { display: block; border-bottom: .3mm solid #111; height: 14mm; margin-bottom: 1.5mm; }
+  .q-fuss { margin-top: 8mm; padding-top: 2mm; border-top: .3mm solid #E8620C; font-size: 8pt; color: #555; text-align: center; }
+}

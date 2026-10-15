@@ -320,6 +320,7 @@
     ["design", "palette", "Design"],
     ["images", "image", "Logo & Bilder"],
     ["contract", "description", "Kaufvertrag"],
+    ["receipt", "receipt", "Quittung"],
   ];
 
   function renderApp() {
@@ -341,7 +342,7 @@
   function renderPanel() {
     const panel = document.getElementById("panel");
     ({ promo: tabPromo, products: tabProducts, business: tabBusiness, texts: tabTexts, services: tabServices,
-      payment: tabPayment, design: tabDesign, images: tabImages, contract: tabContract })[currentTab](panel);
+      payment: tabPayment, design: tabDesign, images: tabImages, contract: tabContract, receipt: tabReceipt })[currentTab](panel);
   }
 
   /* ---------------- Bausteine für Formulare ---------------- */
@@ -1191,6 +1192,160 @@
         }
         window.print();
       });
+  }
+
+
+  /* ---------------- Tab: Quittung (Verkauf) ---------------- */
+  // Nichts davon wird in GitHub gespeichert. Nur die zuletzt benutzte Quittungsnummer
+  // merkt sich dieser Browser, damit die nächste Nummer vorgeschlagen werden kann.
+
+  const GARANTIE = { Neu: "24 Monate Software-Garantie", Gebraucht: "3 Monate Software-Garantie" };
+  let quittungDaten = null;
+
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* egal */ } }
+
+  // Vorschlag: JJJJ-MM-NN, NN zählt pro Monat hoch
+  function naechsteQuittungsNr() {
+    const t = NC.todayIso().slice(0, 7);
+    const last = lsGet("nc_quittung_letzte") || "";
+    const m = /^(\d{4}-\d{2})-(\d+)$/.exec(last);
+    const n = m && m[1] === t ? parseInt(m[2], 10) + 1 : 1;
+    return t + "-" + String(n).padStart(2, "0");
+  }
+
+  function quittungVorlage() {
+    return { nr: naechsteQuittungsNr(), datum: NC.todayIso(), modell: "", imei: "", imei2: "", zustand: "Gebraucht",
+      garantie: GARANTIE.Gebraucht, steuer: "25a", preis: "", zahlung: "Bar", kunde: "", bemerkung: "" };
+  }
+
+  // IMEI prüfen (15 Ziffern, Prüfziffer nach Luhn)
+  function imeiHinweis(v) {
+    const d = String(v || "").replace(/\s/g, "");
+    if (!d) return "";
+    if (!/^\d+$/.test(d)) return "Die IMEI besteht nur aus Ziffern.";
+    if (d.length !== 15) return "Eine IMEI hat 15 Ziffern – hier sind es " + d.length + ".";
+    let sum = 0;
+    for (let i = 0; i < 15; i++) { let x = Number(d[i]); if (i % 2 === 1) { x *= 2; if (x > 9) x -= 9; } sum += x; }
+    return sum % 10 === 0 ? "" : "Die Prüfziffer passt nicht – bitte die IMEI noch einmal vergleichen.";
+  }
+
+  function tabReceipt(panel) {
+    if (!quittungDaten) quittungDaten = quittungVorlage();
+    const d = quittungDaten;
+    const radio = function (name, opts) {
+      return opts.map(function (o) {
+        return '<label class="check"><input type="radio" name="q-' + name + '" value="' + esc(o[0]) + '"' + (d[name] === o[0] ? " checked" : "") + "> " + esc(o[1]) + "</label>";
+      }).join("");
+    };
+    panel.innerHTML =
+      '<div class="card form-stack"><h3>' + icon("receipt") + "Quittung (Verkauf)</h3>" +
+      '<p class="muted small" style="margin:0">Für verkaufte Handys: ausfüllen und auf A4 drucken – mit Logo, Adresse und dem Logo groß und ganz hell im Hintergrund. <strong>Es wird nichts gespeichert.</strong> Nur die letzte Quittungsnummer merkt sich dieser Browser, damit die nächste automatisch vorgeschlagen wird.</p></div>' +
+
+      '<div class="card form-stack"><h3>' + icon("smartphone") + 'Gerät</h3><div class="form-grid">' +
+      field("Modell / Name", inp("q-modell", d.modell, "text", ' placeholder="z. B. Samsung A26 5G" autocomplete="off"')) +
+      field("IMEI", inp("q-imei", d.imei, "text", ' inputmode="numeric" autocomplete="off" placeholder="15 Ziffern"'), "Steht unter *#06# oder auf der Verpackung") +
+      field("IMEI 2 (optional)", inp("q-imei2", d.imei2, "text", ' inputmode="numeric" autocomplete="off"'), "Nur bei Dual-SIM-Geräten") +
+      "</div>" + '<p class="err" id="q-imei-hint" style="margin:0"></p>' +
+      '<fieldset class="kv-wahl"><legend>Zustand</legend>' + radio("zustand", [["Neu", "Neu"], ["Gebraucht", "Gebraucht"]]) + "</fieldset>" +
+      field("Garantie", inp("q-garantie", d.garantie), "Neu = 24 Monate, Gebraucht = 3 Monate – wird beim Wechsel automatisch eingesetzt und kann geändert werden") +
+      "</div>" +
+
+      '<div class="card form-stack"><h3>' + icon("euro") + 'Betrag</h3><div class="form-grid">' +
+      field("Gesamtbetrag (EUR)", inp("q-preis", d.preis, "number", ' min="0" step="0.01" inputmode="decimal"')) +
+      field("Bezahlt mit", '<select id="q-zahlung">' + ["Bar", "EC-Karte", "Kreditkarte", "Überweisung", "PayPal", ""].map(function (z) {
+        return "<option" + (z === d.zahlung ? " selected" : "") + ' value="' + esc(z) + '">' + (z || "– nicht angeben –") + "</option>";
+      }).join("") + "</select>") + "</div>" +
+      '<fieldset class="kv-wahl"><legend>Steuer-Hinweis auf der Quittung</legend>' +
+      radio("steuer", [["25a", "Differenzbesteuerung gem. § 25a UStG (Gebrauchtware)"], ["19", "Im Betrag sind 19 % MwSt. enthalten"]]) + "</fieldset>" +
+      '<p class="muted small" style="margin:0">§ 25a gilt nur für Ware, die ohne Mehrwertsteuer eingekauft wurde (z. B. Ankauf von Privatpersonen). Im Zweifel bitte den Steuerberater fragen.</p></div>' +
+
+      '<div class="card form-stack"><h3>' + icon("description") + 'Quittung</h3><div class="form-grid">' +
+      field("Quittungs-Nr.", inp("q-nr", d.nr), "Wird automatisch hochgezählt, kann geändert werden") +
+      field("Datum", inp("q-datum", d.datum, "date")) +
+      field("Käufer/-in (optional)", inp("q-kunde", d.kunde, "text", ' autocomplete="off"'), "Wird nicht gespeichert") + "</div>" +
+      field("Bemerkung (optional)", area("q-bemerkung", d.bemerkung, 2)) +
+      '<div class="btn-row"><button class="btn primary" type="button" id="q-print">' + icon("print") + 'Quittung drucken</button>' +
+      '<button class="btn" type="button" id="q-reset">' + icon("refresh") + "Neue Quittung</button></div></div>";
+
+    function lesen() {
+      ["nr", "datum", "modell", "imei", "imei2", "garantie", "preis", "zahlung", "kunde", "bemerkung"].forEach(function (k) { d[k] = val("q-" + k); });
+      ["zustand", "steuer"].forEach(function (k) { const r = panel.querySelector('input[name="q-' + k + '"]:checked'); d[k] = r ? r.value : ""; });
+    }
+    function zeigeImei() {
+      const h = [imeiHinweis(val("q-imei")), imeiHinweis(val("q-imei2"))].filter(Boolean);
+      document.getElementById("q-imei-hint").textContent = h.length ? h[0] : "";
+    }
+    panel.addEventListener("input", function () { lesen(); zeigeImei(); });
+    panel.addEventListener("change", function (e) {
+      if (e.target.name === "q-zustand") {
+        const g = document.getElementById("q-garantie");
+        // Garantie nur ersetzen, wenn sie noch einem Standardtext entspricht
+        if (!g.value || Object.values(GARANTIE).indexOf(g.value) !== -1) g.value = GARANTIE[e.target.value];
+        // Steuer-Hinweis passend vorschlagen
+        const st = panel.querySelector('input[name="q-steuer"][value="' + (e.target.value === "Neu" ? "19" : "25a") + '"]');
+        if (st) st.checked = true;
+      }
+      lesen(); zeigeImei();
+    });
+    zeigeImei();
+    document.getElementById("q-print").addEventListener("click", function () {
+      lesen();
+      if (!d.modell.trim()) { toast("Bitte Modell / Name eintragen.", true); return; }
+      if (!(Number(String(d.preis).replace(",", ".")) > 0)) { toast("Bitte den Gesamtbetrag eintragen.", true); return; }
+      if (imeiHinweis(d.imei) && !confirm(imeiHinweis(d.imei) + "\n\nTrotzdem drucken?")) return;
+      lsSet("nc_quittung_letzte", d.nr.trim());
+      quittungDrucken(d);
+    });
+    document.getElementById("q-reset").addEventListener("click", function () {
+      quittungDaten = quittungVorlage(); renderPanel();
+    });
+  }
+
+  function quittungDrucken(d) {
+    const b = settings.business || {};
+    const l = settings.legal || {};
+    const fmt = function (n) { return n.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
+    const preis = Number(String(d.preis).replace(",", "."));
+    const datum = d.datum ? d.datum.split("-").reverse().join(".") : "";
+    const mwst = d.steuer === "19" ? preis - preis / 1.19 : 0;
+    const kontakt = [
+      "<strong>" + esc(l.company_name || b.name || "Networkcity") + "</strong>",
+      l.owner_name ? "Inhaber: " + esc(l.owner_name) : "",
+      esc(b.street), esc(b.zip_city),
+      b.phone ? "Tel.: " + esc(b.phone) : "",
+      b.email ? esc(b.email) : "",
+      "networkcity-heidelberg.com",
+    ].filter(Boolean).join("<br>");
+    let sheet = document.getElementById("print-sheet");
+    if (!sheet) { sheet = document.createElement("div"); sheet.id = "print-sheet"; document.body.appendChild(sheet); }
+    sheet.innerHTML = '<div class="q-seite">' +
+      '<img class="q-wasser" src="assets/logo-papier.png" alt="">' +
+      '<div class="q-absender">' + esc([b.name || "Networkcity", b.street, b.zip_city].filter(Boolean).join(" · ")) + "</div>" +
+      '<div class="q-kopf"><div class="q-titel"><h1>Quittung</h1>' +
+        '<table class="q-meta"><tr><td>Quittungs-Nr.</td><td><strong>' + esc(d.nr) + "</strong></td></tr>" +
+        "<tr><td>Datum</td><td><strong>" + esc(datum) + "</strong></td></tr>" +
+        (d.kunde ? "<tr><td>Käufer/-in</td><td><strong>" + esc(d.kunde) + "</strong></td></tr>" : "") + "</table></div>" +
+        '<div class="q-logo"><img src="assets/logo-papier.png" alt="Networkcity Heidelberg"><div class="q-kontakt">' + kontakt + "</div></div></div>" +
+      '<table class="q-posten"><thead><tr><th>Artikel</th><th class="r">Betrag</th></tr></thead><tbody><tr><td>' +
+        '<div class="q-modell">' + esc(d.modell) + "</div>" +
+        (d.imei ? '<div class="q-imei">IMEI: <strong>' + esc(d.imei.replace(/\s/g, "")) + "</strong></div>" : "") +
+        (d.imei2 ? '<div class="q-imei">IMEI 2: <strong>' + esc(d.imei2.replace(/\s/g, "")) + "</strong></div>" : "") +
+        '<div class="q-zustand">Zustand: ' + esc(d.zustand) + "</div>" +
+        '</td><td class="r q-betrag">' + fmt(preis) + " €</td></tr></tbody></table>" +
+      '<div class="q-summe"><span>Gesamtbetrag</span><strong>' + fmt(preis) + " €</strong></div>" +
+      (d.steuer === "19" ? '<p class="q-hinweis">Im Gesamtbetrag sind 19 % MwSt. (' + fmt(mwst) + " €) enthalten.</p>"
+        : '<p class="q-hinweis">Differenzbesteuerung gem. § 25a UStG – die Umsatzsteuer wird nicht gesondert ausgewiesen (kein Vorsteuerabzug möglich).</p>') +
+      (l.vat_id ? '<p class="q-hinweis">USt-IdNr.: ' + esc(l.vat_id) + "</p>" : "") +
+      (d.garantie ? '<p class="q-garantie">' + esc(d.garantie) + "</p>" : "") +
+      (d.zahlung ? '<p class="q-hinweis">' + ({ Bar: "Betrag bar erhalten.", "Überweisung": "Betrag per Überweisung bezahlt." }[d.zahlung] || "Betrag mit " + esc(d.zahlung) + " bezahlt.") + "</p>" : "") +
+      (d.bemerkung ? '<p class="q-hinweis">' + esc(d.bemerkung).replace(/\n/g, "<br>") + "</p>" : "") +
+      '<div class="q-unterschrift"><span></span>Stempel / Unterschrift</div>' +
+      '<div class="q-fuss">Vielen Dank für Ihren Einkauf! · ' + esc([b.name || "Networkcity", b.street, b.zip_city, b.phone ? "Tel. " + b.phone : ""].filter(Boolean).join(" · ")) + "</div>" +
+      "</div>";
+    const bilder = Array.prototype.slice.call(sheet.querySelectorAll("img"));
+    Promise.all(bilder.map(function (img) { return img.decode ? img.decode().catch(function () {}) : null; }))
+      .then(function () { window.print(); });
   }
 
   /* ---------------- Start ---------------- */
