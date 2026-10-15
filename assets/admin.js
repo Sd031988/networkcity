@@ -1337,6 +1337,11 @@
       ' Z" fill="url(#qbogen)"/>';
     g += '<path d="M' + (cx - 92) + " " + (cy + 56) + " C" + (cx - 40) + " " + (cy + 112) + " " + (cx + 70) + " " + (cy + 100) + " " + (cx + 102) + " " + (cy + 28) +
       '" fill="none" stroke="' + O + '" stroke-width="1.6" stroke-opacity=".09" stroke-linecap="round"/>';
+    // Name „NetworkCity“ groß und ganz hell über dem Globus (Schrift wie im Logo: kräftig, schräg)
+    g += '<g transform="translate(' + cx + " " + (cy + 14) + ') skewX(-12)">' +
+      '<text x="0" y="0" text-anchor="middle" font-family="Arial Black, Arial, Helvetica, sans-serif" font-weight="900" font-size="34" textLength="176" lengthAdjust="spacingAndGlyphs">' +
+      '<tspan fill="#2A2C33" fill-opacity=".07">Network</tspan><tspan fill="' + O + '" fill-opacity=".11">City</tspan></text>' +
+      '<text x="0" y="13" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="7.5" letter-spacing="6" fill="' + O + '" fill-opacity=".12">HEIDELBERG</text></g>';
     // Sicherheits-Wellenband (Guilloche) über der Fußzeile
     const y0 = 285;
     for (let k = 0; k < 6; k++) {
