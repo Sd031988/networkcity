@@ -1255,7 +1255,7 @@
       field("Gesamtbetrag (EUR)", inp("q-preis", d.preis, "number", ' min="0" step="0.01" inputmode="decimal"')) +
       "</div>" +
       '<fieldset class="kv-wahl"><legend>Steuer-Hinweis auf der Quittung</legend>' +
-      radio("steuer", [["25a", "Differenzbesteuerung gem. § 25a UStG (Gebrauchtware)"], ["19", "Im Betrag sind 19 % MwSt. enthalten"]]) + "</fieldset>" +
+      radio("steuer", [["25a", "Differenzbesteuerung gem. § 25a UStG (Gebrauchtware)"], ["19", "Im Betrag sind 19 % MwSt. enthalten"], ["", "Kein Steuer-Hinweis"]]) + "</fieldset>" +
       '<p class="muted small" style="margin:0">§ 25a gilt nur für Ware, die ohne Mehrwertsteuer eingekauft wurde (z. B. Ankauf von Privatpersonen). Im Zweifel bitte den Steuerberater fragen.</p></div>' +
 
       '<div class="card form-stack"><h3>' + icon("description") + 'Quittung</h3><div class="form-grid">' +
@@ -1280,10 +1280,13 @@
         const g = document.getElementById("q-garantie");
         // Garantie nur ersetzen, wenn sie noch einem Standardtext entspricht
         if (!g.value || Object.values(GARANTIE).indexOf(g.value) !== -1) g.value = GARANTIE[e.target.value];
-        // Steuer-Hinweis passend vorschlagen
-        const st = panel.querySelector('input[name="q-steuer"][value="' + (e.target.value === "Neu" ? "19" : "25a") + '"]');
-        if (st) st.checked = true;
+        // Steuer-Hinweis passend vorschlagen – aber nur, solange er nicht selbst gewählt wurde
+        if (!d.steuerManuell) {
+          const st = panel.querySelector('input[name="q-steuer"][value="' + (e.target.value === "Neu" ? "19" : "25a") + '"]');
+          if (st) st.checked = true;
+        }
       }
+      if (e.target.name === "q-steuer") d.steuerManuell = true;
       lesen(); zeigeImei();
     });
     zeigeImei();
@@ -1298,6 +1301,63 @@
     document.getElementById("q-reset").addEventListener("click", function () {
       quittungDaten = quittungVorlage(); renderPanel();
     });
+  }
+
+
+  // Hintergrund der Quittung als Vektorgrafik (druckt scharf, braucht kaum Tinte):
+  // Netz-Globus wie im Logo, orange Lichtbogen, Sicherheits-Wellenband mit Mikroschrift
+  function quittungHintergrund() {
+    const O = "#E8620C", G = "#8A9099";
+    const cx = 105, cy = 166, r = 74;
+    let g = "";
+    // Globus: Längen- und Breitengrade
+    g += '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="' + G + '" stroke-width=".4" stroke-opacity=".26"/>';
+    [20, 40, 60, 75].forEach(function (a) {
+      const rx = r * Math.cos(a * Math.PI / 180);
+      g += '<ellipse cx="' + cx + '" cy="' + cy + '" rx="' + rx.toFixed(2) + '" ry="' + r + '" fill="none" stroke="' + G + '" stroke-width=".28" stroke-opacity=".18"/>';
+    });
+    [-60, -40, -20, 0, 20, 40, 60].forEach(function (a) {
+      const y = cy + r * Math.sin(a * Math.PI / 180), rx = r * Math.cos(a * Math.PI / 180);
+      g += '<ellipse cx="' + cx + '" cy="' + y.toFixed(2) + '" rx="' + rx.toFixed(2) + '" ry="' + (rx * 0.16).toFixed(2) + '" fill="none" stroke="' + G + '" stroke-width=".28" stroke-opacity=".18"/>';
+    });
+    // Netzwerk: Knoten und Verbindungen auf dem Globus
+    const pts = [[-40, -38], [-8, -52], [30, -30], [52, 4], [18, 20], [-26, 6], [-50, 34], [6, 52], [40, 44], [-4, -12]];
+    const links = [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 0], [5, 6], [6, 7], [7, 8], [8, 3], [9, 1], [9, 4], [9, 5], [2, 9], [4, 7]];
+    links.forEach(function (l) {
+      const a = pts[l[0]], b = pts[l[1]];
+      const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2 - 6;
+      g += '<path d="M' + (cx + a[0]) + " " + (cy + a[1]) + " Q" + (cx + mx) + " " + (cy + my) + " " + (cx + b[0]) + " " + (cy + b[1]) +
+        '" fill="none" stroke="' + O + '" stroke-width=".35" stroke-opacity=".26"/>';
+    });
+    pts.forEach(function (q) {
+      g += '<circle cx="' + (cx + q[0]) + '" cy="' + (cy + q[1]) + '" r="2.2" fill="' + O + '" fill-opacity=".07"/>' +
+        '<circle cx="' + (cx + q[0]) + '" cy="' + (cy + q[1]) + '" r=".9" fill="' + O + '" fill-opacity=".32"/>';
+    });
+    // Orangener Lichtbogen mit Pfeilspitze um den Globus (wie im Logo)
+    g += '<path d="M' + (cx - 98) + " " + (cy + 30) + " C" + (cx - 110) + " " + (cy - 70) + " " + (cx + 40) + " " + (cy - 118) + " " + (cx + 96) + " " + (cy - 46) +
+      " L" + (cx + 104) + " " + (cy - 54) + " L" + (cx + 103) + " " + (cy - 30) + " L" + (cx + 82) + " " + (cy - 38) + " L" + (cx + 89) + " " + (cy - 41) +
+      " C" + (cx + 38) + " " + (cy - 104) + " " + (cx - 96) + " " + (cy - 62) + " " + (cx - 88) + " " + (cy + 30) +
+      ' Z" fill="url(#qbogen)"/>';
+    g += '<path d="M' + (cx - 92) + " " + (cy + 56) + " C" + (cx - 40) + " " + (cy + 112) + " " + (cx + 70) + " " + (cy + 100) + " " + (cx + 102) + " " + (cy + 28) +
+      '" fill="none" stroke="' + O + '" stroke-width="1.6" stroke-opacity=".09" stroke-linecap="round"/>';
+    // Sicherheits-Wellenband (Guilloche) über der Fußzeile
+    const y0 = 285;
+    for (let k = 0; k < 6; k++) {
+      let d = "M0 " + y0;
+      for (let x = 0; x <= 210; x += 1) {
+        const y = y0 + Math.sin((x / 9) + k * 0.9) * 1.6 + Math.sin((x / 23) + k * 1.7) * 1.0;
+        d += " L" + x + " " + y.toFixed(2);
+      }
+      g += '<path d="' + d + '" fill="none" stroke="' + (k % 2 ? G : O) + '" stroke-width=".16" stroke-opacity="' + (k % 2 ? ".28" : ".4") + '"/>';
+    }
+    // Mikroschrift unter dem Wellenband
+    const micro = new Array(14).join("NETWORKCITY HEIDELBERG · ");
+    g += '<text x="0" y="290" font-family="Arial, sans-serif" font-size="1.6" letter-spacing=".25" fill="' + G + '" fill-opacity=".55">' + micro + "</text>";
+    // Feine orange Ecklinie oben links
+    g += '<path d="M0 34 Q0 0 34 0" fill="none" stroke="' + O + '" stroke-width=".6" stroke-opacity=".35"/>';
+    return '<svg class="q-bg" viewBox="0 0 210 296" preserveAspectRatio="none" aria-hidden="true">' +
+      '<defs><linearGradient id="qbogen" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="' + O + '" stop-opacity=".02"/>' +
+      '<stop offset=".55" stop-color="' + O + '" stop-opacity=".08"/><stop offset="1" stop-color="#FF9A4D" stop-opacity=".13"/></linearGradient></defs>' + g + "</svg>";
   }
 
   function quittungDrucken(d) {
@@ -1318,7 +1378,7 @@
     let sheet = document.getElementById("print-sheet");
     if (!sheet) { sheet = document.createElement("div"); sheet.id = "print-sheet"; document.body.appendChild(sheet); }
     sheet.innerHTML = '<div class="q-seite">' +
-      '<img class="q-wasser" src="assets/logo-papier.png" alt="">' +
+      quittungHintergrund() +
       '<div class="q-absender">' + esc([b.name || "Networkcity", b.street, b.zip_city].filter(Boolean).join(" · ")) + "</div>" +
       '<div class="q-kopf"><div class="q-titel"><h1>Quittung</h1>' +
         '<table class="q-meta"><tr><td>Quittungs-Nr.</td><td><strong>' + esc(d.nr) + "</strong></td></tr>" +
@@ -1332,8 +1392,8 @@
         '<div class="q-zustand">Zustand: ' + esc(d.zustand) + "</div>" +
         '</td><td class="r q-betrag">' + fmt(preis) + " €</td></tr></tbody></table>" +
       '<div class="q-summe"><span>Gesamtbetrag</span><strong>' + fmt(preis) + " €</strong></div>" +
-      (d.steuer === "19" ? '<p class="q-hinweis">Im Gesamtbetrag sind 19 % MwSt. (' + fmt(mwst) + " €) enthalten.</p>"
-        : '<p class="q-hinweis">Differenzbesteuerung gem. § 25a UStG – die Umsatzsteuer wird nicht gesondert ausgewiesen (kein Vorsteuerabzug möglich).</p>') +
+      (d.steuer === "19" ? '<p class="q-hinweis">Im Gesamtbetrag sind 19 % MwSt. (' + fmt(mwst) + " €) enthalten.</p>" : "") +
+      (d.steuer === "25a" ? '<p class="q-hinweis">Differenzbesteuerung gem. § 25a UStG – die Umsatzsteuer wird nicht gesondert ausgewiesen (kein Vorsteuerabzug möglich).</p>' : "") +
       (l.vat_id ? '<p class="q-hinweis">USt-IdNr.: ' + esc(l.vat_id) + "</p>" : "") +
       (d.garantie ? '<p class="q-garantie">' + esc(d.garantie) + "</p>" : "") +
       (d.bemerkung ? '<p class="q-hinweis">' + esc(d.bemerkung).replace(/\n/g, "<br>") + "</p>" : "") +
