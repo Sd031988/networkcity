@@ -341,6 +341,7 @@
 
   function renderPanel() {
     const panel = document.getElementById("panel");
+    if (currentTab !== "receipt") quittungDaten = null; // Quittung beim Verlassen löschen
     ({ promo: tabPromo, products: tabProducts, business: tabBusiness, texts: tabTexts, services: tabServices,
       payment: tabPayment, design: tabDesign, images: tabImages, contract: tabContract, receipt: tabReceipt })[currentTab](panel);
   }
@@ -1196,22 +1197,19 @@
 
 
   /* ---------------- Tab: Quittung (Verkauf) ---------------- */
-  // Nichts davon wird in GitHub gespeichert. Nur die zuletzt benutzte Quittungsnummer
-  // merkt sich dieser Browser, damit die nächste Nummer vorgeschlagen werden kann.
+  // Nichts wird gespeichert – weder in GitHub noch im Browser. Beim Verlassen des Bereichs
+  // oder beim Neuladen der Seite ist die Quittung weg.
 
   const GARANTIE = { Neu: "24 Monate Software-Garantie", Gebraucht: "3 Monate Software-Garantie" };
   let quittungDaten = null;
 
-  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
-  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* egal */ } }
+  // Früher im Browser gemerkte Nummer entfernen (wird nicht mehr gespeichert)
+  try { localStorage.removeItem("nc_quittung_letzte"); } catch (e) { /* egal */ }
 
-  // Vorschlag: JJJJ-MM-NN, NN zählt pro Monat hoch
+  // Vorschlag aus Datum und Uhrzeit (z. B. 20261015-1142) – ohne etwas zu speichern
   function naechsteQuittungsNr() {
-    const t = NC.todayIso().slice(0, 7);
-    const last = lsGet("nc_quittung_letzte") || "";
-    const m = /^(\d{4}-\d{2})-(\d+)$/.exec(last);
-    const n = m && m[1] === t ? parseInt(m[2], 10) + 1 : 1;
-    return t + "-" + String(n).padStart(2, "0");
+    const n = new Date();
+    return NC.todayIso().replace(/-/g, "") + "-" + String(n.getHours()).padStart(2, "0") + String(n.getMinutes()).padStart(2, "0");
   }
 
   function quittungVorlage() {
@@ -1240,7 +1238,7 @@
     };
     panel.innerHTML =
       '<div class="card form-stack"><h3>' + icon("receipt") + "Quittung (Verkauf)</h3>" +
-      '<p class="muted small" style="margin:0">Für verkaufte Handys: ausfüllen und auf A4 drucken – mit Logo, Adresse und dem Logo groß und ganz hell im Hintergrund. <strong>Es wird nichts gespeichert.</strong> Nur die letzte Quittungsnummer merkt sich dieser Browser, damit die nächste automatisch vorgeschlagen wird.</p></div>' +
+      '<p class="muted small" style="margin:0">Für verkaufte Handys: ausfüllen und auf A4 drucken – mit Logo, Adresse und dem Logo groß und ganz hell im Hintergrund. <strong>Es wird nichts gespeichert</strong> – sobald du diesen Bereich verlässt oder die Seite neu lädst, ist die Quittung gelöscht.</p></div>' +
 
       '<div class="card form-stack"><h3>' + icon("smartphone") + 'Gerät</h3><div class="form-grid">' +
       field("Modell / Name", inp("q-modell", d.modell, "text", ' placeholder="z. B. Samsung A26 5G" autocomplete="off"')) +
@@ -1259,7 +1257,7 @@
       '<p class="muted small" style="margin:0">§ 25a gilt nur für Ware, die ohne Mehrwertsteuer eingekauft wurde (z. B. Ankauf von Privatpersonen). Im Zweifel bitte den Steuerberater fragen.</p></div>' +
 
       '<div class="card form-stack"><h3>' + icon("description") + 'Quittung</h3><div class="form-grid">' +
-      field("Quittungs-Nr.", inp("q-nr", d.nr), "Wird automatisch hochgezählt, kann geändert werden") +
+      field("Quittungs-Nr.", inp("q-nr", d.nr), "Vorschlag aus Datum und Uhrzeit, kann geändert werden") +
       field("Datum", inp("q-datum", d.datum, "date")) +
       field("Käufer/-in (optional)", inp("q-kunde", d.kunde, "text", ' autocomplete="off"'), "Wird nicht gespeichert") + "</div>" +
       field("Bemerkung (optional)", area("q-bemerkung", d.bemerkung, 2)) +
@@ -1295,7 +1293,6 @@
       if (!d.modell.trim()) { toast("Bitte Modell / Name eintragen.", true); return; }
       if (!(Number(String(d.preis).replace(",", ".")) > 0)) { toast("Bitte den Gesamtbetrag eintragen.", true); return; }
       if (imeiHinweis(d.imei) && !confirm(imeiHinweis(d.imei) + "\n\nTrotzdem drucken?")) return;
-      lsSet("nc_quittung_letzte", d.nr.trim());
       quittungDrucken(d);
     });
     document.getElementById("q-reset").addEventListener("click", function () {
