@@ -1216,7 +1216,7 @@
 
   function quittungVorlage() {
     return { nr: naechsteQuittungsNr(), datum: NC.todayIso(), modell: "", imei: "", imei2: "", zustand: "Gebraucht",
-      garantie: GARANTIE.Gebraucht, steuer: "25a", preis: "", zahlung: "Bar", kunde: "", bemerkung: "" };
+      garantie: GARANTIE.Gebraucht, steuer: "25a", preis: "", kunde: "", bemerkung: "" };
   }
 
   // IMEI prüfen (15 Ziffern, Prüfziffer nach Luhn)
@@ -1253,9 +1253,7 @@
 
       '<div class="card form-stack"><h3>' + icon("euro") + 'Betrag</h3><div class="form-grid">' +
       field("Gesamtbetrag (EUR)", inp("q-preis", d.preis, "number", ' min="0" step="0.01" inputmode="decimal"')) +
-      field("Bezahlt mit", '<select id="q-zahlung">' + ["Bar", "EC-Karte", "Kreditkarte", "Überweisung", "PayPal", ""].map(function (z) {
-        return "<option" + (z === d.zahlung ? " selected" : "") + ' value="' + esc(z) + '">' + (z || "– nicht angeben –") + "</option>";
-      }).join("") + "</select>") + "</div>" +
+      "</div>" +
       '<fieldset class="kv-wahl"><legend>Steuer-Hinweis auf der Quittung</legend>' +
       radio("steuer", [["25a", "Differenzbesteuerung gem. § 25a UStG (Gebrauchtware)"], ["19", "Im Betrag sind 19 % MwSt. enthalten"]]) + "</fieldset>" +
       '<p class="muted small" style="margin:0">§ 25a gilt nur für Ware, die ohne Mehrwertsteuer eingekauft wurde (z. B. Ankauf von Privatpersonen). Im Zweifel bitte den Steuerberater fragen.</p></div>' +
@@ -1269,7 +1267,7 @@
       '<button class="btn" type="button" id="q-reset">' + icon("refresh") + "Neue Quittung</button></div></div>";
 
     function lesen() {
-      ["nr", "datum", "modell", "imei", "imei2", "garantie", "preis", "zahlung", "kunde", "bemerkung"].forEach(function (k) { d[k] = val("q-" + k); });
+      ["nr", "datum", "modell", "imei", "imei2", "garantie", "preis", "kunde", "bemerkung"].forEach(function (k) { d[k] = val("q-" + k); });
       ["zustand", "steuer"].forEach(function (k) { const r = panel.querySelector('input[name="q-' + k + '"]:checked'); d[k] = r ? r.value : ""; });
     }
     function zeigeImei() {
@@ -1338,7 +1336,6 @@
         : '<p class="q-hinweis">Differenzbesteuerung gem. § 25a UStG – die Umsatzsteuer wird nicht gesondert ausgewiesen (kein Vorsteuerabzug möglich).</p>') +
       (l.vat_id ? '<p class="q-hinweis">USt-IdNr.: ' + esc(l.vat_id) + "</p>" : "") +
       (d.garantie ? '<p class="q-garantie">' + esc(d.garantie) + "</p>" : "") +
-      (d.zahlung ? '<p class="q-hinweis">' + ({ Bar: "Betrag bar erhalten.", "Überweisung": "Betrag per Überweisung bezahlt." }[d.zahlung] || "Betrag mit " + esc(d.zahlung) + " bezahlt.") + "</p>" : "") +
       (d.bemerkung ? '<p class="q-hinweis">' + esc(d.bemerkung).replace(/\n/g, "<br>") + "</p>" : "") +
       '<div class="q-unterschrift"><span></span>Stempel / Unterschrift</div>' +
       '<div class="q-fuss">Vielen Dank für Ihren Einkauf! · ' + esc([b.name || "Networkcity", b.street, b.zip_city, b.phone ? "Tel. " + b.phone : ""].filter(Boolean).join(" · ")) + "</div>" +
