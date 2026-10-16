@@ -78,5 +78,21 @@
     "sold": false,
     "sold_at": "",
     "payment_methods": []
+  },
+  {
+    "id": "fc1afab438344188ab91cddfa5dddaf8",
+    "name": "Samsung A56 5G",
+    "category": "Smartphone",
+    "condition": "Neu",
+    "price": 355,
+    "old_price": 405,
+    "description": "",
+    "image": "88b08117c464434d8f4c7c9858050bee.png",
+    "featured": true,
+    "available": true,
+    "online_sale": false,
+    "sold": false,
+    "sold_at": "",
+    "payment_methods": []
   }
 ]
