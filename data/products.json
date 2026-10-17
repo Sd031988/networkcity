@@ -110,5 +110,21 @@
     "sold": false,
     "sold_at": "",
     "payment_methods": []
+  },
+  {
+    "id": "1d5e07ff3b194b8db6894a69522fee3b",
+    "name": "Apple Airpods 4 ANC",
+    "category": "Zubehör",
+    "condition": "Neu",
+    "price": 190,
+    "old_price": null,
+    "description": "",
+    "image": "4e49abb0e65849d5b7aa90e22b48e23f.png",
+    "featured": true,
+    "available": true,
+    "online_sale": false,
+    "sold": false,
+    "sold_at": "",
+    "payment_methods": []
   }
 ]
