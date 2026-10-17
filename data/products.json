@@ -94,5 +94,21 @@
     "sold": false,
     "sold_at": "",
     "payment_methods": []
+  },
+  {
+    "id": "23a1fa78146e4f6e8646db353641306f",
+    "name": "Apple Airpods pro 3",
+    "category": "Zubehör",
+    "condition": "Neu",
+    "price": 220,
+    "old_price": 249,
+    "description": "",
+    "image": "97190ed6c2754b6389f4231952d62d30.png",
+    "featured": true,
+    "available": true,
+    "online_sale": false,
+    "sold": false,
+    "sold_at": "",
+    "payment_methods": []
   }
 ]
