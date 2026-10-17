@@ -126,5 +126,21 @@
     "sold": false,
     "sold_at": "",
     "payment_methods": []
+  },
+  {
+    "id": "3dec0ecd2ac7438ab0c854258e9476b8",
+    "name": "APPLE EarPods (USB-C), In-ear Kopfhörer Weiß",
+    "category": "Zubehör",
+    "condition": "Neu",
+    "price": 25.01,
+    "old_price": null,
+    "description": "",
+    "image": "0a382c7386d2484db4f5a177410b8060.png",
+    "featured": false,
+    "available": true,
+    "online_sale": false,
+    "sold": false,
+    "sold_at": "",
+    "payment_methods": []
   }
 ]
