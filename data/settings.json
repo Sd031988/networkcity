@@ -57,13 +57,6 @@
   "theme": "orange",
   "payment_methods": [
     {
-      "id": "paypal",
-      "label": "PayPal",
-      "icon": "account_balance_wallet",
-      "enabled": true,
-      "info": ""
-    },
-    {
       "id": "card",
       "label": "Kredit-/Debitkarte",
       "icon": "credit_card",
